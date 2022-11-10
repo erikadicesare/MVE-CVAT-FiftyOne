@@ -1,0 +1,9 @@
+{% extends 'template.html' %}
+
+{% block header %}
+  {% block title %}Project{% endblock %}
+{% endblock %}
+
+{% block content %}
+    <a href="{{ url_for('upload') }}"><button class="btn btn-primary">Carica immagini</button></a>
+{% endblock %}

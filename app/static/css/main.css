@@ -1,0 +1,33 @@
+.btn-square-md {
+    width: 45px !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    height: 45px !important;
+    text-align: center;
+    padding: 0px;
+    font-size:12px;
+    margin-right: 20px;
+}
+
+.card-header .fa {
+    transition: .3s transform ease-in-out;
+}
+.card-header .collapsed .fa {
+    transform: rotate(90deg);
+}
+
+.notshow {
+    display: none;
+}
+
+.catlist {
+    list-style: none;
+}
+
+.show {
+    display: block;
+}
+
+button:focus {
+    outline-color: black;
+}
