@@ -7,7 +7,7 @@
 {% block content %}
 
     <br/>
-    <a href="{{ url_for('new_project') }}"><input type="button" value="+" class="btn btn-primary float-end btn-square-md" style="font-size: 25px;"></input></a>
+    <a href="{{ url_for('new_projectMVE') }}"><input type="button" value="+" class="btn btn-primary float-end btn-square-md" style="font-size: 25px;"></input></a>
     <br/>
     <div class="container h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
@@ -18,18 +18,31 @@
                             
                             <!--<div class="col-md-10 col-lg-6 order-2 order-lg-1">-->
                                     
-                                    {% for x in data %}
+                                    {% for projectMVE in projectsMVE %}
 
                                     <div class="card" style="padding-left: 0; padding-right:0;">
                                         <div class="card-header d-flex justify-content-between align-items-center" id="headingOne">
-                                            <img src="{{url_for('static',filename = x[3])}}"  width="100" height="70">
-                                            id: {{x[0]}} nome: {{x[1]}} 
+                                            <img src="{{url_for('static',filename = projectMVE[3])}}"  width="100" height="70">
+                                            <p>id: {{projectMVE[0]}} nome: {{projectMVE[1]}} <br/>{{projectMVE[2]}}</p>
                                             <input type="button" value="+" data-toggle="collapse" class="btn btn-info btn-square-md" style="font-size: 25px;"></input>
                                         </div>
                                     
                                         <div id="collapseOne" class="collapse in notshow" aria-labelledby="headingOne">
                                             <div class="card-body">
-                                                Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                                              <div>
+                                                <a href="{{ url_for('new_projectCVAT', id_prj_MVE=projectMVE[0], name_prj_MVE=projectMVE[1]) }}"><input type="button" value="+" class="btn btn-info btn-square-md" style="font-size: 25px; margin-right: 0px;"></input></a> Nuovo progetto CVAT
+                                              </div>
+                                              <div>
+                                                {% for pCVAT in projectsCVAT %}
+                                                {%if (pCVAT['id_MVE']==projectMVE[0])%}
+                                                  <hr>
+                                                  <img src="{{url_for('static',filename = pCVAT['img'])}}" style="margin-left: 30px;" width="100" height="70">
+                                                  id: {{pCVAT['id_CVAT']}} ---- nome: {{pCVAT['name']}} ---- numero di task: {{pCVAT['nTask']}} ---- numero immagini: {{pCVAT['nImages']}}   
+                                                  <a href="{{ url_for('project', id=pCVAT['id_CVAT']) }}"> <input type="button" value="Apri progetto" class="btn btn-secondary float-end" style="font-size: 15px;"></input></a>                                                
+                                                {%endif%}
+                                              {%endfor%}
+                                              </div>
+                                       
                                             </div>
                                         </div>
                                     </div>
@@ -44,8 +57,8 @@
     </div>
 
     <script>
-        var data = JSON.parse('{{ data | tojson | safe}}');
-        console.log(data)
+        var projects = JSON.parse('{{ projectsMVE | tojson | safe}}');
+        console.log(projects)
 
         $('[data-toggle="collapse"]').click(function () {
             // $('.notshow').removeClass('nohide');

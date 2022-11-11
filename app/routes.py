@@ -2,7 +2,7 @@ import math
 import os, json
 import shutil
 from flask import render_template,request, jsonify, redirect, session, url_for
-from app import app, uploadImgs, dbquery
+from app import app, CVATapi, dbquery
 import requests
 import io
 from PIL import Image
@@ -30,46 +30,73 @@ params = {
     'database': name_db
 }
 
+# home page con la vista dei progetti (MVE e CVAT)
+@app.route("/")
 @app.route("/index")
 def index():
     mydb = mysql.connector.connect(**params)
-    mycursor = mydb.cursor()
 
-    mycursor.execute("SELECT * FROM ProjectsMVE")
+    projectsMVE = dbquery.get_projectsMVE(mydb)
 
-    data = mycursor.fetchall()
-    print(data)
+    projectsCVAT =  dbquery.get_projectMVExProjectCVAT(mydb)
 
-    return render_template('index.html', data=data)
+    return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT)
 
-@app.route("/new_project")
-def new_project():
-    return render_template('new_project.html')
+# Creazione di un nuovo progetto MVE
+@app.route("/new_projectMVE")
+def new_projectMVE():
+    return render_template('new_projectMVE.html')
 
-@app.route("/new_project_data", methods=['POST', 'GET'])
-def new_project_data():
+# Ricezione dei dati per la creazione di un nuovo progetto MVE
+@app.route("/new_projectMVE_data", methods=['POST', 'GET'])
+def new_projectMVE_data():
     mydb = mysql.connector.connect(**params)
     if request.method == "POST": 
         name_prj = request.form['name-project']
         desc_prj = request.form['desc-project']
         img_prj = request.files['img-project']
-        dbquery.new_project(mydb, name_prj,desc_prj, img_prj)
+        dbquery.new_projectMVE(mydb, name_prj,desc_prj, img_prj)
         
         return redirect(url_for('index'))
     return ('',204)
 
-@app.route("/project")
-def project():
-    return render_template('project.html')
+# Creazione di un nuovo progetto CVAT, dato un progetto MVE
+@app.route("/new_projectCVAT/<id_prj_MVE>")
+def new_projectCVAT(id_prj_MVE):
+    name_prj_MVE = request.args.get('name_prj_MVE')
+    
+    return render_template('new_projectCVAT.html', id_prj_MVE=id_prj_MVE, name_prj_MVE=name_prj_MVE)
 
-@app.route('/upload')
-def upload():
-    return render_template('upload.html')
+# Ricezione dei dati per la creazione di un nuovo progetto CVAT
+@app.route("/new_projectCVAT_data", methods=['POST', 'GET'])
+def new_projectCVAT_data():
+    mydb = mysql.connector.connect(**params)
+    if request.method == "POST": 
+        name_prj = request.form['name-project']
+        id_prj_MVE = request.form['id-prj-MVE']
+        
+        id_prj_CVAT = CVATapi.create_project(name_prj)
 
-@app.route('/uploader', methods=['POST', 'GET'])
-def uploader():
+        dbquery.new_projectCVAT(mydb, id_prj_MVE, id_prj_CVAT)
+        
+        return redirect(url_for('index'))
+    return ('',204)
+
+
+@app.route("/project/<id>")
+def project(id):
+    return render_template('project.html', id=id)
+
+# Caricamento immaginix
+@app.route('/upload/<id>')
+def upload(id):
+    return render_template('upload.html', id=id)
+
+# Caricamento effettivo delle immagini e creazione di n task a seconda del peso totale delle immagini
+@app.route('/uploader/<id>', methods=['POST', 'GET'])
+def uploader(id):
     files = request.files.getlist('fileList')
-    uploadImgs.uploadImages(username, password, name_task, files)
+    CVATapi.uploadImages(id, name_task, files)
     return ('',204)
 
 """
