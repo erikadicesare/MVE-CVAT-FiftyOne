@@ -1,10 +1,11 @@
 {% extends 'template.html' %}
 
 {% block header %}
-  {% block title %}Nuovo progetto{% endblock %}
+  {% block title %}Modifica progetto{% endblock %}
 {% endblock %}
 
 {% block content %}
+  <br/>
   <br/>
   <div class="container h-100">
     <div class="row d-flex justify-content-center align-items-center h-100">
@@ -39,7 +40,7 @@
                   </div>
                   <br/>
                   <div class="col text-center">
-                    <a href="{{ url_for('delete_projectMVE', projectMVE=data[0]) }}" class="fcc-btn" onclick="return confirm('Sei sicuro di voler eliminare questo progetto MVE? Verranno eliminati anche i progetti CVAT ad esso associati')">Elimina progetto MVE</a>
+                    <a href="{{ url_for('delete_projectMVE', projectMVE=data[0]) }}" class="fcc-btn" onclick="return confirm('Sei sicuro di voler eliminare questo progetto MVE? Verranno eliminati anche i progetti CVAT (e relativi task) ad esso associati')">Elimina progetto MVE</a>
                   </div>
                  
                 </form>

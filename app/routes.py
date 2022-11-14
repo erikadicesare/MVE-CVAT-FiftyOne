@@ -19,6 +19,9 @@ load_dotenv()
 
 name_task = 'My Task'
 
+## HOME ##
+#####################################################################################################
+
 # home page con la vista dei progetti (MVE e CVAT)
 @app.route("/")
 @app.route("/index")
@@ -30,7 +33,10 @@ def index():
 
     return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT)
 
-# Creazione di un nuovo progetto MVE
+## GESTIONE PROGETTI MVE ##
+#####################################################################################################
+
+# CREAZIONE di un nuovo progetto MVE
 @app.route("/new_projectMVE")
 def new_projectMVE():
     return render_template('new_projectMVE.html')
@@ -48,13 +54,13 @@ def new_projectMVE_data():
         return redirect(url_for('index'))
     return ('',204)
 
-# Creazione di un nuovo progetto MVE
+# MODIFICA di un nuovo progetto MVE
 @app.route("/edit_projectMVE/<projectMVE>")
 def edit_projectMVE(projectMVE):
     data = dbquery.get_projectMVE(projectMVE)
     return render_template('edit_projectMVE.html',data=data)
 
-# Ricezione dei dati per la creazione di un nuovo progetto MVE
+# Ricezione dei dati per la modifica di un nuovo progetto MVE
 @app.route("/edit_projectMVE_data", methods=['POST', 'GET'])
 def edit_projectMVE_data():
 
@@ -69,15 +75,33 @@ def edit_projectMVE_data():
         return redirect(url_for('index'))
     return ('',204)
 
-# Creazione di un nuovo progetto MVE
+# ELIMINAZIONE di un progetto MVE
 @app.route("/delete_projectMVE/<projectMVE>")
 def delete_projectMVE(projectMVE):
-    
+    prjsCVAT = dbquery.get_projectsCVAT(projectMVE)  # progetti cvat associati al progetto mve da eliminare
     dbquery.delete_projectMVE(projectMVE)
+    
+    if (len(prjsCVAT) != 0):
+        for pCVAT in prjsCVAT: 
+            CVATapi.delete_project(pCVAT[1])
 
     return redirect(url_for('index'))
 
-# Creazione di un nuovo progetto CVAT, dato un progetto MVE
+## GESTIONE PROGETTI CVAT ##
+#####################################################################################################
+
+# VISUALIZZAZIONE di un progetto CVAT
+@app.route("/project/<id>")
+def project(id):
+
+    projectsMVE = dbquery.get_projectsMVE()
+    # otteniamo tutti i progetti per poter cambiare la scelta del progetto corrente dalla pagina project.html
+    projectsCVAT =  dbquery.get_projectMVExProjectCVAT()
+
+    return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT)
+
+
+# CREAZIONE di un nuovo progetto CVAT, dato un progetto MVE
 @app.route("/new_projectCVAT/<id_prj_MVE>")
 def new_projectCVAT(id_prj_MVE):
     name_prj_MVE = request.args.get('name_prj_MVE')
@@ -98,10 +122,14 @@ def new_projectCVAT_data():
         return redirect(url_for('index'))
     return ('',204)
 
+# ELIMINAZIONE di un progetto CVAT
+@app.route("/delete_projectCVAT/<projectCVAT>")
+def delete_projectCVAT(projectCVAT):
 
-@app.route("/project/<id>")
-def project(id):
-    return render_template('project.html', id=id)
+    dbquery.delete_projectCVAT(projectCVAT)
+    CVATapi.delete_project(projectCVAT)
+
+    return redirect(url_for('index'))
 
 # Caricamento immaginix
 @app.route('/upload/<id>')

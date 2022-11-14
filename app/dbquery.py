@@ -63,7 +63,15 @@ def delete_projectMVE(id_prj):
     mycursor.execute("DELETE FROM ProjectsMVE WHERE IdProjectMVE=%s", (id_prj,))
 
     mydb.commit()
-    #dataform.create_file(task)
+
+def delete_projectCVAT(id_prj):
+
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    
+    mycursor.execute("DELETE FROM ProjectMVExProjectCVAT WHERE IdProjectCVAT=%s", (id_prj,))
+
+    mydb.commit()
 
 def new_projectCVAT(id_prj_MVE, id_prj_CVAT):
 
@@ -95,6 +103,16 @@ def get_projectMVE(id):
     projectsMVE = mycursor.fetchall()
 
     return projectsMVE[0]
+
+def get_projectsCVAT(id):
+
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT * FROM ProjectMVExProjectCVAT WHERE IdProjectMVE=%s", (id,))
+    projectsCVAT = mycursor.fetchall()
+
+    return projectsCVAT
 
 def get_projectMVExProjectCVAT():
 

@@ -4,9 +4,16 @@
     max-height: 100% !important;
     height: 45px !important;
     text-align: center;
-    padding: 0px;
-    font-size:12px;
+    padding: 0 5px 5px 5px;
+    font-size:25px;
     margin-right: 20px;
+}
+
+.select-drop{
+    margin-right: 20px;
+    margin-top: 20px;
+    width: 30% !important;
+    max-width: 100% !important;
 }
 
 .card-header .fa {
@@ -48,4 +55,12 @@ p {
 .fcc-btn:hover {
     background-color: #c22217;
     color: rgb(255, 255, 255);
+}
+
+.navbar-text {
+    position: absolute;
+    left: 0;
+    text-align: center;
+    margin: auto;
+    padding-top: 10px;
 }

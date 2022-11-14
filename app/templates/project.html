@@ -3,23 +3,65 @@
 {% block header %}
   {% block title %}Project{% endblock %}
 {% endblock %}
-
 {% block content %}
     
+    <br/>
+
     <br/>
     <div class="container h-100">
       <div class="row d-flex justify-content-center align-items-center h-100">
         <div class="col-lg-12 col-xl-11">
           <div class="card text-black" style="border-radius: 25px;">
+            <div style="margin-left: 20;">
+              <select class="form-select select-drop float-end" id="select-project" aria-label="Default select example">
+                {% for projectMVE in projectsMVE %}
+                  <optgroup label="MVE {{projectMVE[1]}}">
+
+                  {% for pCVAT in projectsCVAT %}
+                    {%if (pCVAT['id_MVE']==projectMVE[0])%}
+                      {%if (pCVAT['id_CVAT']|int== id|int)%}
+                      <option value="{{pCVAT['id_CVAT']}}" selected>CVAT {{ pCVAT['name']}}</option>  
+                      {%else%}
+                      <option value="{{pCVAT['id_CVAT']}}">CVAT {{ pCVAT['name']}}</option>  
+                      {%endif%}
+                      
+                    {%endif%}
+                  
+                  {%endfor%}
+                </optgroup>
+                {% endfor %}
+                
+              </select>
+            </div>
             <div class="card-body p-md-5">
               <div class="row justify-content-center">
                 <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
                   <a href="{{ url_for('upload', id=id) }}"><button class="btn btn-primary">Carica immagini</button></a>
+                  <br/>
+                  <br/>
+                  <div class="col text-center">
+                    <a href="{{ url_for('delete_projectCVAT', projectCVAT=id) }}" class="fcc-btn" onclick="return confirm('Sei sicuro di voler eliminare questo progetto CVAT? Verranno eliminati anche i task ad esso associati')">Elimina progetto CVAT</a>
+                  </div>
                 </div>
+                
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <script>
+      $(function(){
+      // bind change event to select
+      $('#select-project').on('change', function () {
+          var url = $(this).val(); // get selected value
+          console.log(url)
+          
+          if (url) { // require a URL
+              window.location = "/project/"+url; // redirect
+          }
+          return false;
+      });
+    });
+    </script>
 {% endblock %}

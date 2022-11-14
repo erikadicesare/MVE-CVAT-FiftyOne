@@ -16,19 +16,18 @@ url_cvat = os.getenv('URL_CVAT')
 
 max_size_load_file = os.getenv('MAX_SIZE_LOAD_FILE')
 
+credentials = {
+    "username": username,
+    "email": "",
+    "password": password
+}
 
 
 def uploadImages(id, name_task, files):
-    credentials = {
-        "username": username,
-        "email": "",
-        "password": password
-    }
 
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
     jsonObj = json.loads(login.text)
     keyLogin = jsonObj['key']
-    print(keyLogin)
 
     uuid = request.form.get('uuid')
         
@@ -56,7 +55,6 @@ def uploadImages(id, name_task, files):
     jsonObj = json.loads(createEmptyTask.text)
     #if (createEmptyTask.text == '{"detail":"You do not have permission to perform this action."}'):
     taskId = jsonObj['id']
-    print(taskId)
     
     fs = []
     size = 0 
@@ -68,8 +66,6 @@ def uploadImages(id, name_task, files):
         
         pathFile = 'temp{}/'.format(uuid) + tailfp
         file.save(pathFile)
-        print("PATHFILE image")
-        print(file)
         totalSize = totalSize + Path(pathFile).stat().st_size
     
     #nTasks = round_up(totalSize/int(max_size_load_file))
@@ -86,7 +82,6 @@ def uploadImages(id, name_task, files):
         else:
             images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
             uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
-            print(uploadImgs.text)
 
             fs = [pathFile]
             size = Path(pathFile).stat().st_size
@@ -99,7 +94,6 @@ def uploadImages(id, name_task, files):
     if (size>0): 
         images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
         uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
-        print(uploadImgs.text)
 
     #################################################################################################################################################
     
@@ -115,16 +109,10 @@ def uploadImages(id, name_task, files):
     shutil.rmtree('temp{}'.format(uuid))
 
 def create_project(name_project):
-    credentials = {
-        "username": username,
-        "email": "",
-        "password": password
-    }
 
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
     jsonObj = json.loads(login.text)
     keyLogin = jsonObj['key']
-    print(keyLogin)
 
     dataProject = {
         "name": name_project
@@ -136,23 +124,16 @@ def create_project(name_project):
     return projectId
 
 def get_project(id_prj_MVE, id_prj_CVAT):
-    credentials = {
-        "username": username,
-        "email": "",
-        "password": password
-    }
 
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
     jsonObj = json.loads(login.text)
     keyLogin = jsonObj['key']
-    print(keyLogin)
 
     prj = requests.get('{}/projects/{}'.format(url_cvat, id_prj_CVAT), headers={"Authorization": f'Token {keyLogin}'})
     jsonObj = json.loads(prj.text)
     img = "data/projectCVAT/notasks.png"
     nImages = 0
     if (len(jsonObj['tasks']) != 0):
-        print(prj.text)
         tasks_id = []
         for t in jsonObj['tasks']:
             tasks_id.append(t)
@@ -162,7 +143,6 @@ def get_project(id_prj_MVE, id_prj_CVAT):
         files = os.listdir('./app/static/data/projectCVAT')
         for file in files:
             file_name, file_extension = ntpath.splitext(file)
-            print(file_name, file_extension, max(tasks_id))
             if (file_name==str(max(tasks_id))):
                 img = "data/projectCVAT/{}{}".format(file_name, file_extension)
                 
@@ -176,3 +156,11 @@ def get_project(id_prj_MVE, id_prj_CVAT):
     }
 
     return(project_info)
+
+def delete_project(id):
+
+    login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
+    jsonObj = json.loads(login.text)
+    keyLogin = jsonObj['key']
+
+    prj = requests.delete('{}/projects/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
