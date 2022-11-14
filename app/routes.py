@@ -17,28 +17,16 @@ import mysql.connector
 
 load_dotenv()
 
-username = os.getenv('USERNAME_CVAT')
-password = os.getenv('PASSWORD_CVAT')
-max_size_load_file = os.getenv('MAX_SIZE_LOAD_FILE')
-user_db = os.getenv('USER_DB')
-name_db = os.getenv('NAME_DB')
-project_id = 10
 name_task = 'My Task'
-
-params = {
-    'user': user_db, 
-    'database': name_db
-}
 
 # home page con la vista dei progetti (MVE e CVAT)
 @app.route("/")
 @app.route("/index")
 def index():
-    mydb = mysql.connector.connect(**params)
+    
+    projectsMVE = dbquery.get_projectsMVE()
 
-    projectsMVE = dbquery.get_projectsMVE(mydb)
-
-    projectsCVAT =  dbquery.get_projectMVExProjectCVAT(mydb)
+    projectsCVAT =  dbquery.get_projectMVExProjectCVAT()
 
     return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT)
 
@@ -50,15 +38,44 @@ def new_projectMVE():
 # Ricezione dei dati per la creazione di un nuovo progetto MVE
 @app.route("/new_projectMVE_data", methods=['POST', 'GET'])
 def new_projectMVE_data():
-    mydb = mysql.connector.connect(**params)
+
     if request.method == "POST": 
         name_prj = request.form['name-project']
         desc_prj = request.form['desc-project']
         img_prj = request.files['img-project']
-        dbquery.new_projectMVE(mydb, name_prj,desc_prj, img_prj)
+        dbquery.new_projectMVE(name_prj,desc_prj, img_prj)
         
         return redirect(url_for('index'))
     return ('',204)
+
+# Creazione di un nuovo progetto MVE
+@app.route("/edit_projectMVE/<projectMVE>")
+def edit_projectMVE(projectMVE):
+    data = dbquery.get_projectMVE(projectMVE)
+    return render_template('edit_projectMVE.html',data=data)
+
+# Ricezione dei dati per la creazione di un nuovo progetto MVE
+@app.route("/edit_projectMVE_data", methods=['POST', 'GET'])
+def edit_projectMVE_data():
+
+    if request.method == "POST": 
+        id_prj = request.form['id-project']
+        name_prj = request.form['name-project']
+        desc_prj = request.form['desc-project']
+        img_prj = request.files['img-project']
+        
+        dbquery.edit_projectMVE(id_prj, name_prj,desc_prj, img_prj)
+        
+        return redirect(url_for('index'))
+    return ('',204)
+
+# Creazione di un nuovo progetto MVE
+@app.route("/delete_projectMVE/<projectMVE>")
+def delete_projectMVE(projectMVE):
+    
+    dbquery.delete_projectMVE(projectMVE)
+
+    return redirect(url_for('index'))
 
 # Creazione di un nuovo progetto CVAT, dato un progetto MVE
 @app.route("/new_projectCVAT/<id_prj_MVE>")
@@ -70,14 +87,13 @@ def new_projectCVAT(id_prj_MVE):
 # Ricezione dei dati per la creazione di un nuovo progetto CVAT
 @app.route("/new_projectCVAT_data", methods=['POST', 'GET'])
 def new_projectCVAT_data():
-    mydb = mysql.connector.connect(**params)
     if request.method == "POST": 
         name_prj = request.form['name-project']
         id_prj_MVE = request.form['id-prj-MVE']
         
         id_prj_CVAT = CVATapi.create_project(name_prj)
 
-        dbquery.new_projectCVAT(mydb, id_prj_MVE, id_prj_CVAT)
+        dbquery.new_projectCVAT(id_prj_MVE, id_prj_CVAT)
         
         return redirect(url_for('index'))
     return ('',204)

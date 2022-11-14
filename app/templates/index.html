@@ -24,8 +24,12 @@
                                         <div class="card-header d-flex justify-content-between align-items-center" id="headingOne">
                                             <img src="{{url_for('static',filename = projectMVE[3])}}"  width="100" height="70">
                                             <!--<p style="color: grey;margin-bottom: 0px;">{{projectMVE[0]}}</p> -->
-                                            <p style="margin-bottom: 0px;">{{projectMVE[1]}}<br/>Descrizione: {{projectMVE[2]}}</p>
-                                            <input type="button" value="+" data-toggle="collapse" class="btn btn-info btn-square-md" style="font-size: 25px;"></input>
+                                            <p style="text-align: center;">{{projectMVE[1]}}<br/>Descrizione: {{projectMVE[2]}}</p>
+                                            <p>
+                                              <a href="{{ url_for('edit_projectMVE', projectMVE=projectMVE[0]) }}" style="margin-right: 10px;"><img src="{{url_for('static',filename = 'data/icons/edit-icon.png')}}"  width="25" height="25"></a>
+                                              <input type="button" value="+" data-toggle="collapse" class="btn btn-info btn-square-md" style="font-size: 25px;"></input>
+                                            </p>
+                                            
                                         </div>
                                     
                                         <div id="collapseOne" class="collapse in notshow" aria-labelledby="headingOne">
@@ -40,8 +44,8 @@
                                                   <div class="d-flex justify-content-between align-items-center">
                                                     <img src="{{url_for('static',filename = pCVAT['img'])}}" style="margin-left: 30px;" width="100" height="70">
                                                     <!--<p style="color: grey; margin-bottom: 0px;">{{pCVAT['id_CVAT']}}</p> -->
-                                                    <p style="margin-bottom: 0px;">{{pCVAT['name']}}</p>
-                                                    <p style="margin-bottom: 0px;">Numero task: {{pCVAT['nTask']}}<br/>Numero immagini: {{pCVAT['nImages']}}</p>
+                                                    <p>{{pCVAT['name']}}</p>
+                                                    <p>Numero task: {{pCVAT['nTask']}}<br/>Numero immagini: {{pCVAT['nImages']}}</p>
                                                     <a href="{{ url_for('project', id=pCVAT['id_CVAT']) }}"> <input type="button" value="Apri progetto" class="btn btn-secondary float-end" style="font-size: 15px;margin-right: 30px;"></input></a>                                                
                                                   </div>
                                                   {%endif%}
