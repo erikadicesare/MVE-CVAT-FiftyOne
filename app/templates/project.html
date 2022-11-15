@@ -65,15 +65,62 @@
 
               <div class="card-body p-md-5">
                 <div class="row justify-content-center">
+                  <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1 align-self-center">
+                    <div style="margin: 30px auto;">
+                      <div class="d-flex justify-content-center">
+                        <a href="{{ url_for('upload', id=id) }}"><button class="btn btn-primary">Carica immagini</button></a>
+                      </div>
+                      <br/>
+                      <div class="d-flex justify-content-center">
+                        <a href="#"><button class="btn btn-primary">Carica Predizioni</button></a>
+                      </div>
+                      <br/>
+                      <div class="d-flex justify-content-center">
+                        <a href="#"><button class="btn btn-primary">Verità</button></a>
+                      </div>
+                      <br/>
+                      <div class="d-flex justify-content-center">
+                        <a href="#"><button class="btn btn-primary">Confronto</button></a>
+                      </div>
+                    </div>
+                  </div>
                   <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
-                    <a href="{{ url_for('upload', id=id) }}"><button class="btn btn-primary">Carica immagini</button></a>
-                    <br/>
-                    <br/>
-                    <div class="col text-center">
-                      <a href="{{ url_for('delete_projectCVAT', projectCVAT=id) }}" class="fcc-btn" onclick="return confirm('Sei sicuro di voler eliminare questo progetto CVAT? Verranno eliminati anche i task ad esso associati')">Elimina progetto CVAT</a>
+                    <div class="card box-scrollable" style="width: 18rem;">
+                      <div class="card-header d-flex justify-content-between align-items-center" id="headingOne">
+                        
+                        Task
+                        
+                    </div>
+                    <div class="card-body">
+                    
+                      
+                      <div class="scrollable">
+                        <hr>
+                        Task 1
+                        <hr>
+                        Task 2
+                        <hr>
+                        Task 3
+                        <hr>
+                        Task 4
+                        <hr>
+                        Task 5
+                        <hr>
+                        Task 6
+                        <hr>
+                        Task 7
+                      </div>
+                      
+                    </div>
                     </div>
                   </div>
                   
+                </div>
+                <br/>
+                <div class="row text-center">
+                  <div class="">
+                    <a href="{{ url_for('delete_projectCVAT', projectCVAT=id) }}" class="fcc-btn" onclick="return confirm('Sei sicuro di voler eliminare questo progetto CVAT? Verranno eliminati anche i task ad esso associati')">Elimina progetto CVAT</a>
+                  </div>
                 </div>
               </div>
             {%endif%}
