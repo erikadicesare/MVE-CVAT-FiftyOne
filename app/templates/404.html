@@ -1,0 +1,18 @@
+{% extends 'template.html' %}
+
+{% block header %}
+  {% block title %}Pagina non esistente{% endblock %}
+{% endblock %}
+{% block content %}
+  <br/>
+  <br/>
+  <div style="text-align: center;">
+    {{info}}
+    <br/>
+    Torna alla home
+    <br/>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">Home</a>
+    </div>
+  </div>
+{% endblock %}

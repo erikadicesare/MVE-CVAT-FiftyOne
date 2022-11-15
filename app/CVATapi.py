@@ -33,11 +33,11 @@ def uploadImages(id, name_task, files):
         
     pathFolder = 'temp{}'.format(uuid)
 
-    # Check whether the specified path exists or not
+    # controllo se la cartella esiste 
     isExist = os.path.exists(pathFolder)
-
+    
+    # creo la cartella se non esiste
     if not isExist:
-        # Create a new directory because it does not exist 
         os.makedirs(pathFolder)
 
     dataTask = {
@@ -53,7 +53,6 @@ def uploadImages(id, name_task, files):
     
     createEmptyTask = requests.post('{}/tasks'.format(url_cvat), data=dataTask, headers={"Authorization": f'Token {keyLogin}'})
     jsonObj = json.loads(createEmptyTask.text)
-    #if (createEmptyTask.text == '{"detail":"You do not have permission to perform this action."}'):
     taskId = jsonObj['id']
     
     fs = []
@@ -67,8 +66,6 @@ def uploadImages(id, name_task, files):
         pathFile = 'temp{}/'.format(uuid) + tailfp
         file.save(pathFile)
         totalSize = totalSize + Path(pathFile).stat().st_size
-    
-    #nTasks = round_up(totalSize/int(max_size_load_file))
     
     for file in files:
         
@@ -108,6 +105,7 @@ def uploadImages(id, name_task, files):
     
     shutil.rmtree('temp{}'.format(uuid))
 
+# creo un nuovo progetto inserendo solamente il nome
 def create_project(name_project):
 
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
@@ -123,6 +121,7 @@ def create_project(name_project):
     projectId = jsonObj['id']
     return projectId
 
+# funzione chiamata nello script dbquery.py per ottenere i dati di uno specifico progetto cvat
 def get_project(id_prj_MVE, id_prj_CVAT):
 
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
@@ -157,6 +156,7 @@ def get_project(id_prj_MVE, id_prj_CVAT):
 
     return(project_info)
 
+# elimino uno specifico progetto cvat
 def delete_project(id):
 
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)

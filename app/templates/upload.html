@@ -15,7 +15,12 @@
           <div class="row justify-content-center">
             <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
               <form action ="{{ url_for('uploader', id=id) }}"method = "POST" enctype="multipart/form-data">
-                <div class="picker"><input type="file" id="picker" name="fileList" webkitdirectory directory multiple/></div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Nome Task</label>
+                  <input type="text" class="form-control" id="name-task" name="name-task" required>
+                </div>
+                <div class="picker"><input type="file" id="picker" name="fileList" webkitdirectory directory multiple required/></div>
                 <input type="hidden" name="uuid" >
                 <br/>
                 <input type="submit" value="Process Files" class="btn btn-primary"/><br/>
