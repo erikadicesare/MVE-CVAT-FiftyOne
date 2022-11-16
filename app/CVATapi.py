@@ -68,7 +68,6 @@ def uploadImages(id, name_task, files):
         totalSize = totalSize + Path(pathFile).stat().st_size
     
     for file in files:
-        
         headfp, tailfp = ntpath.split(file.filename)
         
         pathFile = 'temp{}/'.format(uuid) + tailfp
@@ -79,7 +78,7 @@ def uploadImages(id, name_task, files):
         else:
             images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
             uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
-
+            print(uploadImgs.text)
             fs = [pathFile]
             size = Path(pathFile).stat().st_size
             if (size!=0):
@@ -91,8 +90,9 @@ def uploadImages(id, name_task, files):
     if (size>0): 
         images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
         uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
+        print(uploadImgs.text)
 
-    #################################################################################################################################################
+    ############################################################################################################################################################################
     
     # Salvo il primo file dentro static/data/projectCVAT per avere una immagine significativa per progetto (immagine presa dall'ultimo task inserito)
 
@@ -101,7 +101,7 @@ def uploadImages(id, name_task, files):
     pathFirstFile = './app/static/data/projectCVAT/{}{}'.format(taskId, file_extension)
     picture = picture.save(pathFirstFile)
 
-    #################################################################################################################################################
+    ############################################################################################################################################################################
     
     shutil.rmtree('temp{}'.format(uuid))
 
@@ -124,10 +124,13 @@ def create_project(name_project):
 # funzione chiamata nello script dbquery.py per ottenere i dati di uno specifico progetto cvat
 def get_project(id_prj_MVE, id_prj_CVAT):
 
+    img = "data/projectCVAT/notasks.png"
+    
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
     jsonObj = json.loads(login.text)
     keyLogin = jsonObj['key']
 
+    """
     prj = requests.get('{}/projects/{}'.format(url_cvat, id_prj_CVAT), headers={"Authorization": f'Token {keyLogin}'})
     jsonObj = json.loads(prj.text)
     img = "data/projectCVAT/notasks.png"
@@ -138,7 +141,13 @@ def get_project(id_prj_MVE, id_prj_CVAT):
             tasks_id.append(t)
             prj = requests.get('{}/tasks/{}'.format(url_cvat, t), headers={"Authorization": f'Token {keyLogin}'})
             jsonObjtask = json.loads(prj.text)
-            nImages = nImages+jsonObjtask['size']
+            if (jsonObjtask['segments'] == []):
+                nImages = nImages + 0
+            else:
+                nImages = nImages+jsonObjtask['size']
+    
+    
+
         files = os.listdir('./app/static/data/projectCVAT')
         for file in files:
             file_name, file_extension = ntpath.splitext(file)
@@ -153,6 +162,44 @@ def get_project(id_prj_MVE, id_prj_CVAT):
         'nImages': nImages,
         'img': img
     }
+    """
+    # prendo il progetto CVAT
+    prj = requests.get('{}/projects/{}'.format(url_cvat, id_prj_CVAT), headers={"Authorization": f'Token {keyLogin}'})
+    jsonObj = json.loads(prj.text)
+    name = jsonObj['name']
+
+    # prendo i task del progetto CVAT
+    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id_prj_CVAT), headers={"Authorization": f'Token {keyLogin}'})
+    jsonTasks = json.loads(tasks.text)
+    
+    # 'results' contiene i task
+    if (len(jsonTasks['results']) != 0):
+        tasks_id = []
+        for t in jsonTasks['results']:
+            tasks_id.append(t['id'])
+
+            if (t['segments'] == []):
+                size = 0
+            else:
+                size = t['size']
+
+        files = os.listdir('./app/static/data/projectCVAT')
+        for file in files:
+            file_name, file_extension = ntpath.splitext(file)
+            if (file_name==str(max(tasks_id))):
+                img = "data/projectCVAT/{}{}".format(file_name, file_extension)
+    else:
+        size = 0
+        img = "data/projectCVAT/notasks.png"
+
+    project_info = {
+        'id_MVE': id_prj_MVE,
+        'id_CVAT': id_prj_CVAT,
+        'name': name,
+        'nTask': len(jsonTasks['results']),
+        'nImages': size,
+        'img': img
+    }
 
     return(project_info)
 
@@ -164,3 +211,50 @@ def delete_project(id):
     keyLogin = jsonObj['key']
 
     prj = requests.delete('{}/projects/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
+
+def get_tasks(id):
+    login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
+    jsonObj = json.loads(login.text)
+    keyLogin = jsonObj['key']
+
+    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
+    jsonTasks = json.loads(tasks.text)
+    task = []
+    for jsonTask in jsonTasks['results']:
+
+        if (jsonTask['segments'] == []):
+            size = 0
+        else:
+            size = jsonTask['size']
+
+        date = jsonTask['created_date'][0:10].split("-")
+
+        t = {
+            'id': jsonTask['id'],
+            'name': jsonTask['name'],
+            'date': date[2]+"/"+date[1]+"/"+date[0],
+            'size': size
+        }
+        task.append(t)
+    
+    return task
+
+def create_empty_task():
+    login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
+    jsonObj = json.loads(login.text)
+    keyLogin = jsonObj['key']
+
+    dataTask = {
+        "name": "Empty #1",
+        "project_id": 26,
+        "owner": 0,
+        "assignee": 0,
+        "overlap": 0,
+        "segment_size": 150,
+        "z_order": False,
+        "image_quality": 100,
+    }
+
+    createEmptyTask = requests.post('{}/tasks'.format(url_cvat), data=dataTask, headers={"Authorization": f'Token {keyLogin}'})
+    jsonObj = json.loads(createEmptyTask.text)
+    taskId = jsonObj['id']

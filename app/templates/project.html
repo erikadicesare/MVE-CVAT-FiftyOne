@@ -85,33 +85,41 @@
                     </div>
                   </div>
                   <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
-                    <div class="card box-scrollable" style="width: 18rem;">
+
+                    <div class="card box-scrollable">
                       <div class="card-header d-flex justify-content-between align-items-center" id="headingOne">
                         
-                        Task
+                        <b>Task</b>
                         
-                    </div>
-                    <div class="card-body">
-                    
-                      
-                      <div class="scrollable">
-                        <hr>
-                        Task 1
-                        <hr>
-                        Task 2
-                        <hr>
-                        Task 3
-                        <hr>
-                        Task 4
-                        <hr>
-                        Task 5
-                        <hr>
-                        Task 6
-                        <hr>
-                        Task 7
                       </div>
+                      <div class="card-body">
                       
-                    </div>
+                        
+                        <div class="scrollable">
+                          
+                          <table class="table">
+                            <thead>
+                              <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Nome</th>
+                                <th scope="col">Immagini</th>
+                                <th scope="col">Data</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {%for task in tasks%}
+                                <tr>
+                                  <th scope="row">{{task['id']}}</th>
+                                  <td>{{task['name']}}</td>
+                                  <td>{{task['size']}}</td>
+                                  <td>{{task['date']}}</td>
+                                </tr>
+                              {%endfor%}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                      </div>
                     </div>
                   </div>
                   
@@ -133,7 +141,6 @@
       // bind change event to select
       $('#select-project').on('change', function () {
           var url = $(this).val(); // get selected value
-          console.log(url)
           
           if (url) { // require a URL
               window.location = "/project/"+url; // redirect

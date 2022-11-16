@@ -100,7 +100,9 @@ def project(id):
     if (project == []):
         return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, info="progetto non esistente")
     
-    return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, info="")
+    tasks = CVATapi.get_tasks(id)
+
+    return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, tasks=tasks, info="")
 
 
 # CREAZIONE di un nuovo progetto CVAT, dato un progetto MVE
@@ -164,7 +166,7 @@ def uploader(id):
     name_task = request.form['name-task']
     files = request.files.getlist('fileList')
     CVATapi.uploadImages(id, name_task, files)
-    return ('',204)
+    return redirect(url_for('project', id=id))
 
 ## GESTIONE ERRORI  ##
 #####################################################################################################
@@ -172,3 +174,8 @@ def uploader(id):
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html', info="Pagina non trovata"), 404
+
+@app.route('/prova')
+def prova():
+    CVATapi.create_empty_task()
+    return redirect(url_for('index'))
