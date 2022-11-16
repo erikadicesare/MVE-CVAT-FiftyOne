@@ -104,6 +104,7 @@
                                 <th scope="col">Nome</th>
                                 <th scope="col">Immagini</th>
                                 <th scope="col">Data</th>
+                                <th scope="col">Elimina</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -113,6 +114,7 @@
                                   <td>{{task['name']}}</td>
                                   <td>{{task['size']}}</td>
                                   <td>{{task['date']}}</td>
+                                  <td style="text-align: center"><a href="{{ url_for('delete_task', id=task['id'], prj_id=id) }}" onclick="return confirm('Sei sicuro di voler eliminare questo task?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  width="15" height="15"></a></td>
                                 </tr>
                               {%endfor%}
                             </tbody>
@@ -127,7 +129,7 @@
                 <br/>
                 <div class="row text-center">
                   <div class="">
-                    <a href="{{ url_for('delete_projectCVAT', projectCVAT=id) }}" class="fcc-btn" onclick="return confirm('Sei sicuro di voler eliminare questo progetto CVAT? Verranno eliminati anche i task ad esso associati')">Elimina progetto CVAT</a>
+                    <a href="{{ url_for('delete_projectCVAT', id=id) }}" class="fcc-btn" onclick="return confirm('Sei sicuro di voler eliminare questo progetto CVAT? Verranno eliminati anche i task ad esso associati')">Elimina progetto CVAT</a>
                   </div>
                 </div>
               </div>

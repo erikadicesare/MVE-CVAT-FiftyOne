@@ -212,6 +212,7 @@ def delete_project(id):
 
     prj = requests.delete('{}/projects/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
 
+# prendo i task di un progetto cvat specifico
 def get_tasks(id):
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
     jsonObj = json.loads(login.text)
@@ -239,22 +240,27 @@ def get_tasks(id):
     
     return task
 
-def create_empty_task():
+# cancello un task specifico
+def delete_task(id):
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
     jsonObj = json.loads(login.text)
     keyLogin = jsonObj['key']
 
-    dataTask = {
-        "name": "Empty #1",
-        "project_id": 26,
-        "owner": 0,
-        "assignee": 0,
-        "overlap": 0,
-        "segment_size": 150,
-        "z_order": False,
-        "image_quality": 100,
-    }
+    prj = requests.delete('{}/tasks/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
 
-    createEmptyTask = requests.post('{}/tasks'.format(url_cvat), data=dataTask, headers={"Authorization": f'Token {keyLogin}'})
-    jsonObj = json.loads(createEmptyTask.text)
-    taskId = jsonObj['id']
+# prendo gli id di tutti i progetti esistenti su cvat e li metto in una lista
+def get_projects_id():
+    login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
+    jsonObj = json.loads(login.text)
+    keyLogin = jsonObj['key']
+
+    prj = requests.get('{}/projects'.format(url_cvat), headers={"Authorization": f'Token {keyLogin}'})
+    jsonObj = json.loads(prj.text)
+    
+    ids = []
+
+    if (jsonObj['results'] != []):
+        for result in jsonObj['results']:
+            ids.append(result['id'])
+    
+    return ids

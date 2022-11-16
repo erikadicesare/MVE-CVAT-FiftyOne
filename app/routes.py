@@ -12,9 +12,18 @@ load_dotenv()
 @app.route("/index")
 def index():
 
+    # p_cvat contiene i progetti esistenti su cvat, a prescindere da MVE
+    # ps_db contiene i progetti cvat esistenti sul db
+    p_cvat = CVATapi.get_projects_id()
+    p_db = dbquery.get_projectsCVAT_id()
+    
+    for p in p_db:
+        if p not in p_cvat:
+            dbquery.delete_projectCVAT(p)
+            
     # prendo tutti i progetti MVE e CVAT
     projectsMVE = dbquery.get_projectsMVE()
-    projectsCVAT =  dbquery.get_projectMVExProjectCVAT()
+    projectsCVAT =  dbquery.get_projectMVExProjectCVAT() 
 
     return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT)
 
@@ -40,11 +49,11 @@ def new_projectMVE_data():
     return ('',204)
 
 # MODIFICA di un nuovo progetto MVE
-@app.route("/edit_projectMVE/<projectMVE>")
-def edit_projectMVE(projectMVE):
-    data = dbquery.get_projectMVE(projectMVE)
+@app.route("/edit_projectMVE/<id>")
+def edit_projectMVE(id):
+    data = dbquery.get_projectMVE(id)
     if (data == []):
-        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(projectMVE)), 404)
+        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
     
     return render_template('edit_projectMVE.html',data=data)
 
@@ -64,17 +73,17 @@ def edit_projectMVE_data():
     return ('',204)
 
 # ELIMINAZIONE di un progetto MVE
-@app.route("/delete_projectMVE/<projectMVE>")
-def delete_projectMVE(projectMVE):
+@app.route("/delete_projectMVE/<id>")
+def delete_projectMVE(id):
     
     # controllo che il progetto mve esista
-    project = dbquery.get_projectMVE(projectMVE)
+    project = dbquery.get_projectMVE(id)
     if (project == []):
-        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(projectMVE)), 404)
+        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
 
     # prendo i progetti cvat associati al progetto mve da eliminare
-    prjsCVAT = dbquery.get_projectsCVAT(projectMVE)  
-    dbquery.delete_projectMVE(projectMVE)
+    prjsCVAT = dbquery.get_projectsCVAT(id)  
+    dbquery.delete_projectMVE(id)
     
     # se esistono elimino ogni progetto cvat
     if (len(prjsCVAT) != 0):
@@ -133,23 +142,23 @@ def new_projectCVAT_data():
     return ('',204)
 
 # ELIMINAZIONE di un progetto CVAT
-@app.route("/delete_projectCVAT/<projectCVAT>")
-def delete_projectCVAT(projectCVAT):
+@app.route("/delete_projectCVAT/<id>")
+def delete_projectCVAT(id):
 
     # controllo che il progetto mve esista
-    project = dbquery.get_projectCVAT(projectCVAT)
+    project = dbquery.get_projectCVAT(id)
     if (project == []):
-        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(projectCVAT)), 404)
+        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
     
-    dbquery.delete_projectCVAT(projectCVAT)
-    CVATapi.delete_project(projectCVAT)
+    dbquery.delete_projectCVAT(id)
+    CVATapi.delete_project(id)
 
     return redirect(url_for('index'))
 
-## CARICAMENTO IMMAGINI - CREAZIONE DI TASK ##
+## CARICAMENTO IMMAGINI - CREAZIONE DI TASK - ELIMINAZIONE TASK ##
 #####################################################################################################
 
-# Caricamento immaginix
+# Caricamento immagini
 @app.route('/upload/<id>')
 def upload(id):
     
@@ -167,6 +176,15 @@ def uploader(id):
     files = request.files.getlist('fileList')
     CVATapi.uploadImages(id, name_task, files)
     return redirect(url_for('project', id=id))
+
+# ELIMINAZIONE di un task
+@app.route("/delete_task/<id>")
+def delete_task(id):
+
+    prj_id = request.args.get('prj_id')
+    CVATapi.delete_task(id)
+
+    return redirect(url_for('project', id=prj_id))
 
 ## GESTIONE ERRORI  ##
 #####################################################################################################

@@ -28,7 +28,7 @@
                                             <!--<p style="color: grey;margin-bottom: 0px;">{{projectMVE[0]}}</p> -->
                                             <p style="text-align: center;">{{projectMVE[1]}}<br/>Descrizione: {{projectMVE[2]}}</p>
                                             <p>
-                                              <a href="{{ url_for('edit_projectMVE', projectMVE=projectMVE[0]) }}" style="margin-right: 10px;"><img src="{{url_for('static',filename = 'data/icons/edit-icon.png')}}"  width="25" height="25"></a>
+                                              <a href="{{ url_for('edit_projectMVE', id=projectMVE[0]) }}" style="margin-right: 10px;"><img src="{{url_for('static',filename = 'data/icons/edit-icon.png')}}"  width="25" height="25"></a>
                                               <input type="button" value="+" data-toggle="collapse" class="btn btn-info btn-square-md"></input>
                                             </p>
                                             

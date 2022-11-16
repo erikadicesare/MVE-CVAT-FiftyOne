@@ -160,3 +160,20 @@ def get_projectMVExProjectCVAT():
         psCVAT.append(project)
 
     return psCVAT
+
+# prendo gli id dei progetti cvat presenti del db
+def get_projectsCVAT_id():
+
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT IdProjectCVAT FROM ProjectMVExProjectCVAT ")
+    projectsCVAT = mycursor.fetchall()
+
+    ids = []
+    if (len(projectsCVAT) != 0):
+
+        for pCVAT in projectsCVAT:
+            ids.append(pCVAT[0])
+
+    return ids
