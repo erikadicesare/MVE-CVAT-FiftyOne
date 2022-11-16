@@ -4,6 +4,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+## PRIMA DI OGNI RICHIESTA FACCIO QUESTO CONTROLLO ##
+#####################################################################################################
+
+@app.before_request
+def before_request():
+    # controllo che i progetti cvat esistenti nel db siano esistenti anche su cvat (in questo modo 
+    # eventuali progetti eliminati lato cvat saranno eliminati anche lato db)
+    # p_cvat contiene i progetti esistenti su cvat, a prescindere da MVE
+    # ps_db contiene i progetti cvat esistenti sul db
+    projectsCVAT = CVATapi.get_projects_id()
+    projectsCVATdb = dbquery.get_projectsCVAT_id()
+    
+    for p in projectsCVATdb:
+        if p not in projectsCVAT:
+            dbquery.delete_projectCVAT(p)
+            
 ## HOME ##
 #####################################################################################################
 
@@ -11,16 +27,7 @@ load_dotenv()
 @app.route("/")
 @app.route("/index")
 def index():
-
-    # p_cvat contiene i progetti esistenti su cvat, a prescindere da MVE
-    # ps_db contiene i progetti cvat esistenti sul db
-    p_cvat = CVATapi.get_projects_id()
-    p_db = dbquery.get_projectsCVAT_id()
-    
-    for p in p_db:
-        if p not in p_cvat:
-            dbquery.delete_projectCVAT(p)
-            
+  
     # prendo tutti i progetti MVE e CVAT
     projectsMVE = dbquery.get_projectsMVE()
     projectsCVAT =  dbquery.get_projectMVExProjectCVAT() 
@@ -192,8 +199,3 @@ def delete_task(id):
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html', info="Pagina non trovata"), 404
-
-@app.route('/prova')
-def prova():
-    CVATapi.create_empty_task()
-    return redirect(url_for('index'))

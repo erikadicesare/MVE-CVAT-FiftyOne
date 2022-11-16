@@ -13,11 +13,14 @@
     </head>
     
     <body>
-        <nav class="navbar navbar-dark bg-primary">
-            <div class="container-fluid">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid d-flex justify-content-between">
                 <a class="navbar-brand" href="{{ url_for('index') }}">Home</a>
-            </div>
+                <p class="h4" style="color: rgb(112, 124, 123);">
+                    {% block navbar %}{% endblock %}
+                </p>
             
+            </div>
         </nav>
         {% block content %}{% endblock %}
     </body>

@@ -3,6 +3,9 @@
 {% block header %}
   {% block title %}Project{% endblock %}
 {% endblock %}
+
+{% block navbar %}Progetto CVAT{% endblock %}
+
 {% block content %}
     
     <br/>
@@ -67,20 +70,14 @@
                 <div class="row justify-content-center">
                   <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1 align-self-center">
                     <div style="margin: 30px auto;">
-                      <div class="d-flex justify-content-center">
-                        <a href="{{ url_for('upload', id=id) }}"><button class="btn btn-primary">Carica immagini</button></a>
-                      </div>
-                      <br/>
-                      <div class="d-flex justify-content-center">
-                        <a href="#"><button class="btn btn-primary">Carica Predizioni</button></a>
-                      </div>
-                      <br/>
-                      <div class="d-flex justify-content-center">
-                        <a href="#"><button class="btn btn-primary">Verità</button></a>
-                      </div>
-                      <br/>
-                      <div class="d-flex justify-content-center">
-                        <a href="#"><button class="btn btn-primary">Confronto</button></a>
+                      <div class="d-grid gap-2 col-6 mx-auto">
+                        <a class="btn btn-primary" href="{{ url_for('upload', id=id) }}" role="button">Carica immagini</a>
+                        <br/>
+                        <a class="btn btn-primary" href="#" role="button">Carica Predizioni</a>
+                        <br/>
+                        <a class="btn btn-primary" href="#" role="button">Verità</a>
+                        <br/>
+                        <a class="btn btn-primary" href="#" role="button">Confronto</a>
                       </div>
                     </div>
                   </div>
@@ -104,7 +101,7 @@
                                 <th scope="col">Nome</th>
                                 <th scope="col">Immagini</th>
                                 <th scope="col">Data</th>
-                                <th scope="col">Elimina</th>
+                                <th scope="col"></th>
                               </tr>
                             </thead>
                             <tbody>
@@ -114,7 +111,7 @@
                                   <td>{{task['name']}}</td>
                                   <td>{{task['size']}}</td>
                                   <td>{{task['date']}}</td>
-                                  <td style="text-align: center"><a href="{{ url_for('delete_task', id=task['id'], prj_id=id) }}" onclick="return confirm('Sei sicuro di voler eliminare questo task?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  width="15" height="15"></a></td>
+                                  <td style="text-align: center;"><a href="{{ url_for('delete_task', id=task['id'], prj_id=id) }}" onclick="return confirm('Sei sicuro di voler eliminare questo task?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  style="margin-bottom: 2px;"width="15" height="15"></a></td>
                                 </tr>
                               {%endfor%}
                             </tbody>
