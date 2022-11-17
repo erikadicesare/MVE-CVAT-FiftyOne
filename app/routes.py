@@ -1,5 +1,6 @@
+import time
 from flask import render_template,request, jsonify, redirect, url_for, make_response
-from app import app, CVATapi, dbquery
+from app import app, CVATapi, dbquery, truthdb
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -174,7 +175,7 @@ def upload(id):
     if (project == []):
         return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
 
-    return render_template('upload.html', id=id)
+    return render_template('upload_img.html', id=id)
 
 # Caricamento effettivo delle immagini e creazione di n task a seconda del peso totale delle immagini
 @app.route('/uploader/<id>', methods=['POST', 'GET'])
@@ -182,6 +183,7 @@ def uploader(id):
     name_task = request.form['name-task']
     files = request.files.getlist('fileList')
     CVATapi.uploadImages(id, name_task, files)
+    time.sleep(2)
     return redirect(url_for('project', id=id))
 
 # ELIMINAZIONE di un task
@@ -192,6 +194,28 @@ def delete_task(id):
     CVATapi.delete_task(id)
 
     return redirect(url_for('project', id=prj_id))
+
+## CARICAMENTO VERITA ## 
+#####################################################################################################
+
+# NB l'id che passo come parametro è l'id del progetto MVE scelto
+
+# Caricamento truth
+@app.route("/upload_truth/<id>")
+def upload_truth(id):
+    # controllo che il progetto mve esista
+    project = dbquery.get_projectMVE(id)
+    if (project == []):
+        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
+
+    return render_template('upload_truth.html', id=id)
+
+# Caricamento effettivo del file e aggiunta di istanze nelle tabelle Truth e TruthValues
+@app.route('/uploader_truth/<id>', methods=['POST', 'GET'])
+def uploader_truth(id):
+    file_truth = request.files['file-truth']
+    truthdb.read_file(file_truth,id)
+    return redirect(url_for('index'))
 
 ## GESTIONE ERRORI  ##
 #####################################################################################################

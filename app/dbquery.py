@@ -8,12 +8,12 @@ load_dotenv()
 
 user_db = os.getenv('USER_DB')
 name_db = os.getenv('NAME_DB')
-pw_db = os.getenv('PW_DB')
+#pw_db = os.getenv('PW_DB')
 
 params = {
     'user': user_db, 
     'database': name_db,
-    'password': pw_db
+    #'password': pw_db
 }
 
 # creazione nuovo progetto MVE 
@@ -177,3 +177,27 @@ def get_projectsCVAT_id():
             ids.append(pCVAT[0])
 
     return ids
+
+# creo una istanza nella tabella Truth
+def insert_truth(idMVE, name):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    sql = "INSERT INTO Truth (IdProjectMVE, Name) VALUES (%s, %s)"
+    val = (idMVE, name)
+    mycursor.execute(sql, val)
+
+    mydb.commit()
+    ItemID = mycursor.lastrowid
+    return ItemID
+
+# creo una istanza nella tabella TruthValues
+def insert_truth_values(idTruth, propName, valReal, valStr):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    sql = "INSERT INTO TruthValues (IdTruth, PropName, ValueReal, ValueString) VALUES (%s, %s, %s, %s)"
+    val = (idTruth, propName, valReal, valStr)
+    mycursor.execute(sql, val)
+
+    mydb.commit()

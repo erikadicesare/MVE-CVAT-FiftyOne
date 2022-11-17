@@ -1,0 +1,45 @@
+{% extends 'template.html' %}
+
+{% block header %}
+  {% block title %}Caricamento immagini{% endblock %}
+{% endblock %}
+
+{% block navbar %}Caricamento immagini{% endblock %}
+
+{% block content %}
+<br/>
+<br/>
+<div class="container h-100">
+  <div class="row d-flex justify-content-center align-items-center h-100">
+    <div class="col-lg-12 col-xl-11">
+      <div class="card text-black" style="border-radius: 25px;">
+        <div class="card-body p-md-5">
+          <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+              <form action ="{{ url_for('uploader_truth', id=id) }}"method = "POST" enctype="multipart/form-data">
+                
+                <label for="formFile" class="form-label">Carica file verità</label>
+                <input type="file" id="file-truth" class="form-control" name="file-truth" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                <input type="hidden" name="uuid" >
+
+                <br/>
+                <input type="submit" value="Process Files" class="btn btn-primary"/><br/>
+            </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src='../static/js/main.js' type="text/javascript" ></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
+<script>
+    
+  var uuid = Math.random().toString().replace("0.", "")
+  $('input[type=hidden]').val(uuid)
+
+</script>
+{% endblock %}
