@@ -34,6 +34,7 @@ def read_file(file, idMVE):
 
     columns = data.columns
 
+    # Se la colonna con il sampleId non esiste, restituisco un errore
     if (('SampleId' not in columns) and ('SampleID' not in columns) and ('IdSample' not in columns)):
         shutil.rmtree('tempPred{}'.format(uuid))
         return make_response(render_template("404.html", info="Il file inserito non contiene un campo compatibile con IdSample"), 404)
@@ -54,11 +55,13 @@ def read_file(file, idMVE):
         status = dbquery.check_table_exists(idPred)
         i = i + 1
     
-    # Creao la tabella
+    # Creao la tabella PredictionX
     dbquery.create_table_prediction(idPred)  
 
+    # inserisco una istanza nella tabela PredList con l'idPred (nome tabella Prediction) e nome del file
     dbquery.insert_pred_list(idPred, file_name)
         
+    # se esiste la colonna ObjKey allora quella avra gli idMVS; se non esiste prendo di default la prima colonna
     if 'ObjKey' in columns:
         idMVS = 'ObjKey'
     else:
@@ -72,7 +75,9 @@ def read_file(file, idMVE):
     
     for column in columns:
         allNull = True
+        # salvo il nome della colonna contenente il sampleId e aggiungo la colonna nella tabella PredictionX
         if (column == 'SampleId' or column == 'SampleID' or column == 'IdSample'):
+            col_sampleId = column
             dbquery.add_column_prediction_fk(idPred)
         elif (column != idMVS):
             for d in data[column]:
@@ -90,15 +95,21 @@ def read_file(file, idMVE):
                 del data[column]
     
     columns = data.columns
-    
+
+    # prendo gli id dei sample presenti nella tabella Truth
+    sampleIdsTruth = dbquery.get_sampleIds_truth()
+
+    # per ogni riga del dataframe data, vado a prendere ogni valore per ogni colonna esistente.
+    # controllo che il sampleId presente nella prediction sia esistente tra i sampleId Truth
     for index, row in data.iterrows():
         currentRow = []
-        for column in columns:
+        for column in columns:                    
             if (pd.isnull(row[column]) == False):
                 currentRow.append(row[column])
             else:
                 currentRow.append(None)
-        dbquery.insert_prediction_row(idPred, currentRow)
+        if row[col_sampleId] in sampleIdsTruth:   
+            dbquery.insert_prediction_row(idPred, currentRow)
 
     shutil.rmtree('tempPred{}'.format(uuid))
 

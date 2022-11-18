@@ -246,6 +246,24 @@ def insert_truth_values(idTruth, propName, valReal, valStr):
     mycursor.close()
     mydb.close()
 
+def get_sampleIds_truth():
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT IdSample FROM Truth")
+    sampleIds = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    ids = []
+    if (len(sampleIds) != 0):
+
+        for sId in sampleIds:
+            ids.append(sId[0])
+
+    return ids
+
 def count_table():
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -323,16 +341,13 @@ def insert_prediction_row(name_table, values):
     sql = "INSERT INTO {} VALUES ({})".format(name_table, par[:-1])
 
     val = tuple(i for i in values)
-    print(sql, val)
+    
     mycursor.execute(sql, val)
 
     mydb.commit()
-    ItemID = mycursor.lastrowid
-
     mycursor.close()
     mydb.close()
 
-    return ItemID
 
 def insert_pred_list(idPred, name):
     mydb = mysql.connector.connect(**params)
