@@ -40,16 +40,16 @@ def read_file(file, idMVE):
     # dal file csv/xls, l'indice i corrente (riga corrente), 'Name'/'Nome'/'name'/'nome', e la
     # lista con i nomi delle colonne
     
-    if 'Name' in data:
+    if 'Name' in columns:
         for i in range(len(data['Name'])):
             create_row_truth_values(idMVE, data, i, 'Name', columns)
-    elif 'Nome' in data:
+    elif 'Nome' in columns:
         for i in range(len(data['Nome'])):
             create_row_truth_values(idMVE, data, i, 'Nome', columns)
-    elif 'name' in data:
+    elif 'name' in columns:
         for i in range(len(data['name'])):
             create_row_truth_values(idMVE, data, i, 'name', columns)
-    elif 'nome' in data:
+    elif 'nome' in columns:
         for i in range(len(data['nome'])):
             create_row_truth_values(idMVE, data, i, 'nome', columns) 
     else:

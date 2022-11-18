@@ -34,6 +34,10 @@ def new_projectMVE(name_prj, desc_prj, img_prj):
 
     mydb.commit()
 
+    mycursor.close()
+
+    mydb.close()
+
 # modifica di un progetto MVE
 def edit_projectMVE(id_prj, name_prj, desc_prj, img_prj):
 
@@ -61,6 +65,9 @@ def edit_projectMVE(id_prj, name_prj, desc_prj, img_prj):
 
     mydb.commit()
 
+    mycursor.close()
+    mydb.close()
+
 # eliminazione di un progetto MVE (in automatico elimina i progetti CVAT associati perché c'è l'opzione on cascade nel db)
 def delete_projectMVE(id_prj):
 
@@ -70,6 +77,9 @@ def delete_projectMVE(id_prj):
     mycursor.execute("DELETE FROM ProjectsMVE WHERE IdProjectMVE=%s", (id_prj,))
 
     mydb.commit()
+    
+    mycursor.close()
+    mydb.close()
 
 # eliminazione di un progetto CVAT 
 def delete_projectCVAT(id_prj):
@@ -80,6 +90,9 @@ def delete_projectCVAT(id_prj):
     mycursor.execute("DELETE FROM ProjectMVExProjectCVAT WHERE IdProjectCVAT=%s", (id_prj,))
 
     mydb.commit()
+
+    mycursor.close()
+    mydb.close()
 
 # creazione di un nuovo progetto CVAT nel db (coppia di chiavi idMVExidCVAT)
 def new_projectCVAT(id_prj_MVE, id_prj_CVAT):
@@ -93,6 +106,9 @@ def new_projectCVAT(id_prj_MVE, id_prj_CVAT):
 
     mydb.commit()
 
+    mycursor.close()
+    mydb.close()
+
 # ottengo tutti i progetti MVE
 def get_projectsMVE():
 
@@ -101,6 +117,9 @@ def get_projectsMVE():
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM ProjectsMVE")
     projectsMVE = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
 
     return projectsMVE
 
@@ -112,10 +131,15 @@ def get_projectMVE(id):
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM ProjectsMVE WHERE IdProjectMVE=%s", (id,))
     projectsMVE = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
     if (projectsMVE==[]):
         return projectsMVE
     else:
         return projectsMVE[0]
+
 
 # ottengo tutti i progetti CVAT associati a un progetto MVE specifico
 def get_projectsCVAT(id):
@@ -126,6 +150,9 @@ def get_projectsCVAT(id):
     mycursor.execute("SELECT * FROM ProjectMVExProjectCVAT WHERE IdProjectMVE=%s", (id,))
     projectsCVAT = mycursor.fetchall()
 
+    mycursor.close()
+    mydb.close()
+
     return projectsCVAT
 
 # ottengo un progetto CVAT specifico 
@@ -135,6 +162,10 @@ def get_projectCVAT(id):
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM ProjectMVExProjectCVAT WHERE IdProjectCVAT=%s", (id,))
     projectCVAT = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
     if (projectCVAT==[]):
         return projectCVAT
     else:
@@ -150,6 +181,9 @@ def get_projectMVExProjectCVAT():
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM ProjectMVExProjectCVAT ")
     projectsCVAT = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
     
     psCVAT = []
     for projectCVAT in projectsCVAT:
@@ -170,6 +204,9 @@ def get_projectsCVAT_id():
     mycursor.execute("SELECT IdProjectCVAT FROM ProjectMVExProjectCVAT ")
     projectsCVAT = mycursor.fetchall()
 
+    mycursor.close()
+    mydb.close()
+
     ids = []
     if (len(projectsCVAT) != 0):
 
@@ -189,6 +226,10 @@ def insert_truth(idMVE, name):
 
     mydb.commit()
     ItemID = mycursor.lastrowid
+
+    mycursor.close()
+    mydb.close()
+
     return ItemID
 
 # creo una istanza nella tabella TruthValues
@@ -201,3 +242,110 @@ def insert_truth_values(idTruth, propName, valReal, valStr):
     mycursor.execute(sql, val)
 
     mydb.commit()
+
+    mycursor.close()
+    mydb.close()
+
+def count_table():
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("Show tables;")
+ 
+    myresult = mycursor.fetchall()
+    
+    predTables = []
+    for x in myresult:
+        if 'Prediction' in x[0]:
+            predTables.append(x[0])
+    
+    return len(predTables)
+
+def check_table_exists(name_table):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("""
+        SELECT COUNT(*)
+        FROM information_schema.tables
+        WHERE table_name = '{}'
+        """.format(name_table))
+    if mycursor.fetchone()[0] == 1:
+        mydb.close()
+        return True
+        
+    mydb.close()
+    return False
+
+def create_table_prediction(name_table):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    sql = "CREATE TABLE {} (idMVS VARCHAR(100) PRIMARY KEY)".format(name_table) 
+    mycursor.execute(sql)
+
+    mycursor.close()
+    mydb.close()
+
+def add_column_prediction(name_table, name_column, type_column):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    sql = "ALTER TABLE {} ADD `{}` {}".format(name_table, name_column, type_column)
+    mycursor.execute(sql)
+
+    mycursor.close()
+    mydb.close()
+
+def add_column_prediction_fk(name_table):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    sql_col = "ALTER TABLE {} ADD IdSample BIGINT NOT NULL".format(name_table)
+
+    mycursor.execute(sql_col)
+
+    sql_fk = "ALTER TABLE {} ADD CONSTRAINT {}_FK FOREIGN KEY (IdSample) REFERENCES Truth(IdSample)".format(name_table, name_table)
+
+    mycursor.execute(sql_fk)
+
+    mycursor.close()
+    mydb.close()
+
+def insert_prediction_row(name_table, values):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    #sql = "INSERT INTO PredList (IdPrediction, Name) VALUES (%s, %s)"
+
+    par = ""
+    for val in values:
+        par = par + "%s,"
+    
+    sql = "INSERT INTO {} VALUES ({})".format(name_table, par[:-1])
+
+    val = tuple(i for i in values)
+    print(sql, val)
+    mycursor.execute(sql, val)
+
+    mydb.commit()
+    ItemID = mycursor.lastrowid
+
+    mycursor.close()
+    mydb.close()
+
+    return ItemID
+
+def insert_pred_list(idPred, name):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    sql = "INSERT INTO PredList (IdPrediction, Name) VALUES (%s, %s)"
+    val = (idPred, name)
+    mycursor.execute(sql, val)
+
+    mydb.commit()
+    ItemID = mycursor.lastrowid
+
+    mycursor.close()
+    mydb.close()
+
+    return ItemID

@@ -1,6 +1,6 @@
 import time
 from flask import render_template,request, jsonify, redirect, url_for, make_response
-from app import app, CVATapi, dbquery, truthdb
+from app import app, CVATapi, dbquery, truthdb, predictdb
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -216,6 +216,28 @@ def uploader_truth(id):
     file_truth = request.files['file-truth']
     truthdb.read_file(file_truth,id)
     return redirect(url_for('index'))
+
+## CARICAMENTO PREDIZIONI ## 
+#####################################################################################################
+
+# NB l'id che passo come parametro è l'id del progetto MVE scelto
+
+# Caricamento truth
+@app.route("/upload_prediction/<id>")
+def upload_prediction(id):
+    # controllo che il progetto mve esista
+    project = dbquery.get_projectMVE(id)
+    if (project == []):
+        return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
+
+    return render_template('upload_prediction.html', id=id)
+
+# Caricamento effettivo del file e aggiunta di istanze nelle tabelle Truth e TruthValues
+@app.route('/uploader_prediction/<id>', methods=['POST', 'GET'])
+def uploader_prediction(id):
+    file_truth = request.files['file-pred']
+    
+    return predictdb.read_file(file_truth,id)
 
 ## GESTIONE ERRORI  ##
 #####################################################################################################

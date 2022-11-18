@@ -9,7 +9,7 @@
 {% block content %}
 
     <br/>
-    <a href="{{ url_for('new_projectMVE') }}"><input type="button" value="+" class="btn btn-dark float-end btn-square-md"></input></a>
+    <a href="{{ url_for('new_projectMVE') }}"><input type="button" value="Nuovo progetto MVE" class="btn btn-dark float-end" style="margin-right: 20px;"></input></a>
     <br/>
     <div class="container h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
@@ -41,7 +41,7 @@
                                               <div>
                                                 <a class="btn btn-primary" href="{{ url_for('new_projectCVAT', id_prj_MVE=projectMVE[0], name_prj_MVE=projectMVE[1]) }}" role="button">Nuovo progetto CVAT</a>                                                
                                                 <a class="btn btn-primary" href="{{ url_for('upload_truth', id=projectMVE[0]) }}" role="button">Carica verità</a>
-                                                <a class="btn btn-primary" href="#" role="button">Carica predizioni</a>
+                                                <a class="btn btn-primary" href="{{ url_for('upload_prediction', id=projectMVE[0]) }}" role="button">Carica predizioni</a>
                                               </div>
                                               <div>
                                                 {% for pCVAT in projectsCVAT %}
