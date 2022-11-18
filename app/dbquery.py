@@ -246,6 +246,7 @@ def insert_truth_values(idTruth, propName, valReal, valStr):
     mycursor.close()
     mydb.close()
 
+# ottento i samples Id dalla tabella Truth
 def get_sampleIds_truth():
     mydb = mysql.connector.connect(**params)
 
@@ -264,6 +265,7 @@ def get_sampleIds_truth():
 
     return ids
 
+# mi segno le tabelle che hanno nel nome la stirnga "Prediction" (per fare il count in predictdb)
 def count_table():
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -279,6 +281,8 @@ def count_table():
     
     return len(predTables)
 
+
+# controllo che se la tabella passata come parametro esiste
 def check_table_exists(name_table):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -295,6 +299,7 @@ def check_table_exists(name_table):
     mydb.close()
     return False
 
+# creo una tabella Prediction 
 def create_table_prediction(name_table):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -305,6 +310,7 @@ def create_table_prediction(name_table):
     mycursor.close()
     mydb.close()
 
+# aggiungo una colonna a una specifica tabella Prediction
 def add_column_prediction(name_table, name_column, type_column):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -314,6 +320,7 @@ def add_column_prediction(name_table, name_column, type_column):
     mycursor.close()
     mydb.close()
 
+# aggiungo la tabella con chiave esterna (idSample) a una specifica tabella Prediction 
 def add_column_prediction_fk(name_table):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -328,6 +335,7 @@ def add_column_prediction_fk(name_table):
     mycursor.close()
     mydb.close()
 
+# inserisco una riga ad una tabella specifica Prediction 
 def insert_prediction_row(name_table, values):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -348,7 +356,7 @@ def insert_prediction_row(name_table, values):
     mycursor.close()
     mydb.close()
 
-
+# inserisco una riga alla tabella PredList
 def insert_pred_list(idPred, name):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
