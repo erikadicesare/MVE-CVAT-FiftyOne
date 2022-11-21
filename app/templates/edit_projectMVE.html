@@ -47,10 +47,51 @@
               </div>
             </div>
           </div>
+          <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1 ">
+              
+              <div class="card box-scrollable">
+                <div class="card-header d-flex justify-content-between align-items-center" id="headingOne">
+                  
+                  <b>Predizioni</b>
+                  
+                </div>
+                <div class="card-body">
+                
+                  
+                  <div class="scrollable">
+                    
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Id</th>
+                          <th scope="col">Nome</th>
+                          <th scope="col">Righe</th>
+                          <th scope="col"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {%for prediction in predictions%}
+                          <tr>
+                            <th scope="row">{{prediction['IdPrediction']}}</th>
+                            <td>{{prediction['Name']}}</td>
+                            <td>{{prediction['rows']}}</td>
+                            <td style="text-align: center;"><a href="{{ url_for('delete_prediction', id=prediction['id'], prj_id=id) }}" onclick="return confirm('Sei sicuro di voler eliminare questa predizione?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  style="margin-bottom: 2px;"width="15" height="15"></a></td>
+                          </tr>
+                        {%endfor%}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+  <br/>
+  <br/>
   <script>
     function showImage(src,target) {
       var fr=new FileReader();

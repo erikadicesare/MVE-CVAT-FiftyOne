@@ -32,10 +32,16 @@ def read_file(file, idMVE):
     else:
         data=pd.read_excel(io=pathFile)
 
-    columns = data.columns
-
     # Se la colonna con il sampleId non esiste, restituisco un errore
-    if (('SampleId' not in columns) and ('SampleID' not in columns) and ('IdSample' not in columns)):
+    stringSampleId = 'sampleid'
+    stringIdSample = 'idsample'
+    stringSampleName = 'samplename'
+    stringNameSample = 'namesample'
+
+    columns = data.columns
+    lower_columns = [column.lower() for column in columns]
+
+    if ((stringSampleId.casefold() not in lower_columns) and (stringIdSample.casefold() not in lower_columns) and (stringSampleName.casefold() not in lower_columns) and (stringNameSample.casefold() not in lower_columns)):
         shutil.rmtree('tempPred{}'.format(uuid))
         return make_response(render_template("404.html", info="Il file inserito non contiene un campo compatibile con IdSample"), 404)
     
@@ -58,8 +64,8 @@ def read_file(file, idMVE):
     # Creao la tabella PredictionX
     dbquery.create_table_prediction(idPred)  
 
-    # inserisco una istanza nella tabela PredList con l'idPred (nome tabella Prediction) e nome del file
-    dbquery.insert_pred_list(idPred, file_name)
+    # inserisco una istanza nella tabela PredList con l'idPred (nome tabella Prediction), nome del file e id progetto mve corrispondente
+    dbquery.insert_pred_list(idPred, file_name, idMVE)
         
     # se esiste la colonna ObjKey allora quella avra gli idMVS; se non esiste prendo di default la prima colonna
     if 'ObjKey' in columns:
@@ -67,7 +73,6 @@ def read_file(file, idMVE):
     else:
         idMVS = data.iloc[:, 0]  
 
-    
     # per ogni colonna vado a prendere il primo valore non nullo e guardo se è un numero 
     # o altro. In caso di altro assegnamo il tipo stringa
     # La funzione add_column_prediction aggiunge la colonna corrente (e il suo tipo) 
@@ -75,8 +80,9 @@ def read_file(file, idMVE):
     
     for column in columns:
         allNull = True
-        # salvo il nome della colonna contenente il sampleId e aggiungo la colonna nella tabella PredictionX
-        if (column == 'SampleId' or column == 'SampleID' or column == 'IdSample'):
+        # salvo il nome della colonna contenente il sampleId (o il sampleName) e aggiungo la colonna nella tabella PredictionX
+        # Il sampleName verra cercato nella tabella Truth e verra di conseguenza salvato l'id corrispondente
+        if (column.lower() == stringIdSample.casefold() or column.lower() == stringSampleId.casefold() or column.lower() == stringNameSample.casefold() or column.lower() == stringSampleName.casefold()):
             col_sampleId = column
             dbquery.add_column_prediction_fk(idPred)
         elif (column != idMVS):
@@ -98,18 +104,52 @@ def read_file(file, idMVE):
 
     # prendo gli id dei sample presenti nella tabella Truth
     sampleIdsTruth = dbquery.get_sampleIds_truth()
+    
+    # SE il campo individuato per il sample è l'id 
+    if (stringSampleId.casefold() in lower_columns) or (stringIdSample.casefold() in lower_columns):
 
-    # per ogni riga del dataframe data, vado a prendere ogni valore per ogni colonna esistente.
-    # controllo che il sampleId presente nella prediction sia esistente tra i sampleId Truth
-    for index, row in data.iterrows():
-        currentRow = []
-        for column in columns:                    
-            if (pd.isnull(row[column]) == False):
-                currentRow.append(row[column])
-            else:
-                currentRow.append(None)
-        if row[col_sampleId] in sampleIdsTruth:   
-            dbquery.insert_prediction_row(idPred, currentRow)
+
+        # per ogni riga del dataframe data, vado a prendere ogni valore per ogni colonna esistente.
+        # controllo che il sampleId presente nella prediction sia esistente tra i sampleId Truth
+        for index, row in data.iterrows():
+            currentRow = []
+            for column in columns:                    
+                if (pd.isnull(row[column]) == False):
+                    currentRow.append(row[column])
+                else:
+                    currentRow.append(None)
+            if row[col_sampleId] in sampleIdsTruth:   
+                dbquery.insert_prediction_row(idPred, currentRow)
+
+    # SE il campo individuato per il sample è in nome
+    elif (stringNameSample.casefold() in lower_columns) or (stringSampleName.casefold() in lower_columns):
+        # prendo i nomi dei sample presenti nella tabella Truth
+        sampleNamesTruth = dbquery.get_sampleNames_truth()
+
+        # per ogni riga del dataframe data, vado a prendere ogni valore per ogni colonna esistente.
+        # Prima controllo se la colonna corrente è quella del Sample Name. In caso affermativo, 
+        # se il nome esiste tra quelli della tabella Truth, vado a prendere l'id associato a quel nome
+        for index, row in data.iterrows():
+            currentRow = []
+            for column in columns:
+                if (column.lower() == stringNameSample.casefold() or column.lower() == stringSampleName.casefold()):
+                    idSample = None
+                    if (pd.isnull(row[column]) == False):
+                        if row[column] in sampleNamesTruth:
+                            idSample = dbquery.get_id_from_name_truth(row[column])
+                            currentRow.append(idSample)
+                        else:
+                            currentRow.append(None)
+                    else:
+                        currentRow.append(None)
+                else:
+                    if (pd.isnull(row[column]) == False):
+                        currentRow.append(row[column])
+                    else:
+                        currentRow.append(None)
+                        
+            if idSample in sampleIdsTruth: 
+                dbquery.insert_prediction_row(idPred, currentRow)
 
     shutil.rmtree('tempPred{}'.format(uuid))
 

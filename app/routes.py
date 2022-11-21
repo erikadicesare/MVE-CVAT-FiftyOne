@@ -1,5 +1,5 @@
 import time
-from flask import render_template,request, jsonify, redirect, url_for, make_response
+from flask import render_template,request, jsonify, redirect, session, url_for, make_response
 from app import app, CVATapi, dbquery, truthdb, predictdb
 from dotenv import load_dotenv
 
@@ -63,7 +63,9 @@ def edit_projectMVE(id):
     if (data == []):
         return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
     
-    return render_template('edit_projectMVE.html',data=data)
+    predictions = dbquery.get_predList(id)
+    
+    return render_template('edit_projectMVE.html', id=id, data=data, predictions=predictions)
 
 # Ricezione dei dati per la modifica di un nuovo progetto MVE
 @app.route("/edit_projectMVE_data", methods=['POST', 'GET'])
@@ -166,7 +168,7 @@ def delete_projectCVAT(id):
 ## CARICAMENTO IMMAGINI - CREAZIONE DI TASK - ELIMINAZIONE TASK ##
 #####################################################################################################
 
-# Caricamento immagini
+# CARICAMENTO immagini
 @app.route('/upload/<id>')
 def upload(id):
     
@@ -200,7 +202,7 @@ def delete_task(id):
 
 # NB l'id che passo come parametro è l'id del progetto MVE scelto
 
-# Caricamento truth
+# CARICAMENTO truth
 @app.route("/upload_truth/<id>")
 def upload_truth(id):
     # controllo che il progetto mve esista
@@ -214,15 +216,17 @@ def upload_truth(id):
 @app.route('/uploader_truth/<id>', methods=['POST', 'GET'])
 def uploader_truth(id):
     file_truth = request.files['file-truth']
-    truthdb.read_file(file_truth,id)
-    return redirect(url_for('index'))
+    resp = truthdb.read_file(file_truth,id)
+    session['duplicates'] = resp
+    
+    return redirect(url_for('upload_truth', id=id))
 
-## CARICAMENTO PREDIZIONI ## 
+## PREDIZIONI ## 
 #####################################################################################################
 
 # NB l'id che passo come parametro è l'id del progetto MVE scelto
 
-# Caricamento truth
+# CARICAMENTO predizione
 @app.route("/upload_prediction/<id>")
 def upload_prediction(id):
     # controllo che il progetto mve esista
@@ -238,6 +242,15 @@ def uploader_prediction(id):
     file_truth = request.files['file-pred']
     
     return predictdb.read_file(file_truth,id)
+
+# ELIMINAZIONE di una predizione
+@app.route("/delete_prediction/<id>")
+def delete_prediction(id):
+
+    dbquery.delete_prediction(id)
+    prj_id = request.args.get('prj_id')
+
+    return redirect(url_for('edit_projectMVE', id=prj_id))
 
 ## GESTIONE ERRORI  ##
 #####################################################################################################

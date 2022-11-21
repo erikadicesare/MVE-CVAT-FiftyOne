@@ -265,6 +265,41 @@ def get_sampleIds_truth():
 
     return ids
 
+# ottento i samples name dalla tabella Truth
+def get_sampleNames_truth():
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT Name FROM Truth")
+    sampleNames = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    names = []
+    if (len(sampleNames) != 0):
+
+        for sName in sampleNames:
+            names.append(sName[0])
+
+    return names
+
+# ottento i samples name dalla tabella Truth
+def get_id_from_name_truth(name):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT IdSample FROM Truth WHERE Name=%s", (name,))
+    id = mycursor.fetchone()
+
+    mycursor.close()
+    mydb.close()
+
+    if (id==[]):
+        return id
+    else:
+        return id[0]
+
 # mi segno le tabelle che hanno nel nome la stirnga "Prediction" (per fare il count in predictdb)
 def count_table():
     mydb = mysql.connector.connect(**params)
@@ -328,7 +363,7 @@ def add_column_prediction_fk(name_table):
 
     mycursor.execute(sql_col)
 
-    sql_fk = "ALTER TABLE {} ADD CONSTRAINT {}_FK FOREIGN KEY (IdSample) REFERENCES Truth(IdSample)".format(name_table, name_table)
+    sql_fk = "ALTER TABLE {} ADD CONSTRAINT {}_FK FOREIGN KEY (IdSample) REFERENCES Truth(IdSample) ON DELETE CASCADE ON UPDATE CASCADE".format(name_table, name_table)
 
     mycursor.execute(sql_fk)
 
@@ -357,12 +392,12 @@ def insert_prediction_row(name_table, values):
     mydb.close()
 
 # inserisco una riga alla tabella PredList
-def insert_pred_list(idPred, name):
+def insert_pred_list(idPred, name, idMVE):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
-    sql = "INSERT INTO PredList (IdPrediction, Name) VALUES (%s, %s)"
-    val = (idPred, name)
+    sql = "INSERT INTO PredList (IdPrediction, Name, IdProjectMVE) VALUES (%s, %s, %s)"
+    val = (idPred, name, idMVE)
     mycursor.execute(sql, val)
 
     mydb.commit()
@@ -372,3 +407,69 @@ def insert_pred_list(idPred, name):
     mydb.close()
 
     return ItemID
+
+# Prendo le righe della tabella PredList che hanno un determinato progetto mve associato
+def get_predList(idMVE):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT * FROM PredList WHERE IdProjectMVE=%s", (idMVE,))
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    predictions = []
+
+    for res in results:
+        countRows = count_rows_table(res[1])
+        pred = {
+            'id': res[0],
+            'IdPrediction': res[1],
+            'Name': res[2],
+            'IdProjectMVE': res[3],
+            'rows': countRows
+        }
+        predictions.append(pred)
+    #get_n_rows_for_prediction(2)
+
+    return predictions
+
+# eliminazione di una predizione
+def delete_prediction(id):
+
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    
+    mycursor.execute("DELETE FROM PredList WHERE id=%s", (id,))
+
+    mydb.commit()
+
+    mycursor.close()
+    mydb.close()
+
+# seleziona una tabella di predizioni e ne restituisce il numero di righe
+def count_rows_table(table_name):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("Show tables;")
+ 
+    myresult = mycursor.fetchall()
+    mycursor.close()
+    
+    tables = []
+    for table in myresult:
+        tables.append(table[0])
+
+    if table_name in tables:
+        mycursor = mydb.cursor()
+        sql = "SELECT COUNT(*) FROM {};".format(table_name)
+        mycursor.execute(sql)
+        count_row = mycursor.fetchone()
+        mycursor.close()
+        mydb.close()
+        return count_row[0]
+    
+    mydb.close()
+    return []

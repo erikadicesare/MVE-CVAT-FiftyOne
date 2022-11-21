@@ -39,24 +39,36 @@ def read_file(file, idMVE):
     # create_row_truth_valus passandogli l'id del progetto MVE, il dataframe con i dati estratti
     # dal file csv/xls, l'indice i corrente (riga corrente), 'Name'/'Nome'/'name'/'nome', e la
     # lista con i nomi delle colonne
-    
+    duplicates = []
     if 'Name' in columns:
         for i in range(len(data['Name'])):
-            create_row_truth_values(idMVE, data, i, 'Name', columns)
+            insert = create_row_truth_values(idMVE, data, i, 'Name', columns)
+            if insert is not None:
+                duplicates.append(insert)
     elif 'Nome' in columns:
         for i in range(len(data['Nome'])):
-            create_row_truth_values(idMVE, data, i, 'Nome', columns)
+            insert = create_row_truth_values(idMVE, data, i, 'Nome', columns)
+            if insert is not None:
+                duplicates.append(insert)
     elif 'name' in columns:
         for i in range(len(data['name'])):
-            create_row_truth_values(idMVE, data, i, 'name', columns)
+            insert = create_row_truth_values(idMVE, data, i, 'name', columns)
+            if insert is not None:
+                duplicates.append(insert)
     elif 'nome' in columns:
         for i in range(len(data['nome'])):
-            create_row_truth_values(idMVE, data, i, 'nome', columns) 
+            insert = create_row_truth_values(idMVE, data, i, 'nome', columns) 
+            if insert is not None:
+                duplicates.append(insert)
     else:
         for i in range(len(data.iloc[:, 0])):
-            create_row_truth_values(idMVE, data, i, data.columns[0], columns)
+            insert = create_row_truth_values(idMVE, data, i, data.columns[0], columns)
+            if insert is not None:
+                duplicates.append(insert)
 
     shutil.rmtree('tempTruth{}'.format(uuid))
+    
+    return duplicates
 
 # creo tre oggetti: uno con i nomi delle proprieta, uno con i valori numerici delle proprieta e
 # uno con i valori stringa delle proprieta 
@@ -64,8 +76,13 @@ def read_file(file, idMVE):
 # script dbquery (che inserisce nel db una riga per ogni proprieta/valori con il corrispondente idTruth)
 
 def create_row_truth_values(idMVE, data, i, col, columns):
+
+    # Controllo se esiste gia una verita con il nome corrente
+    sampleNames = dbquery.get_sampleNames_truth()
+    if data[col][i] in sampleNames:
+        return i
+
     idTruth = dbquery.insert_truth(idMVE, data[col][i]) 
-    #print(data.iloc[i])
     
     propsName = []
     valuesReal = []
@@ -83,4 +100,6 @@ def create_row_truth_values(idMVE, data, i, col, columns):
     if (len(propsName) == len(valuesReal) and len(valuesReal) == len(valuesString)):
         for propName, valueReal, valueString in zip(propsName, valuesReal, valuesString):
             dbquery.insert_truth_values(idTruth, propName, valueReal, valueString)
+    
+    return None
 
