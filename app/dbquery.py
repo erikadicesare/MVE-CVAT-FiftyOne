@@ -375,8 +375,6 @@ def insert_prediction_row(name_table, values):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
-    #sql = "INSERT INTO PredList (IdPrediction, Name) VALUES (%s, %s)"
-
     par = ""
     for val in values:
         par = par + "%s,"
@@ -473,3 +471,53 @@ def count_rows_table(table_name):
     
     mydb.close()
     return []
+
+# creo una istanza nella tabella MVSxCVAT 
+def insert_MVSxCVAT_row(idCVAT, idMVE, idTask):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    
+    sql = "INSERT INTO MVSxCVAT (IdCVAT, IdProjectMVE, IdTask) VALUES (%s, %s, %s)"
+
+    val = (idCVAT, idMVE, idTask)
+    
+    mycursor.execute(sql, val)
+
+    mydb.commit()
+    mycursor.close()
+    mydb.close()
+
+# prendo la colonna idMVS di una determinata tabella PredictionX
+def get_prediction(table_name):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    sql = "SELECT idMVS FROM {};".format(table_name)
+    mycursor.execute(sql)
+
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    ids = []
+    if (len(results) != 0):
+
+        for id in results:
+            ids.append(id[0])
+
+    return ids
+
+# seleziono le righe della tabella MVSxCVAT che hanno un determinato IdProjectMVE
+def get_MVSxCVAT(idMVE):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT * FROM MVSxCVAT WHERE IdProjectMVE=%s", (idMVE,))
+
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return results

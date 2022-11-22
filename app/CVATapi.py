@@ -1,3 +1,4 @@
+from zipfile import ZipFile
 from flask import request
 import requests
 import os, json
@@ -5,6 +6,7 @@ from pathlib import Path
 import ntpath
 import shutil
 from PIL import Image  
+from app import dbquery
 import PIL  
 from dotenv import load_dotenv
 
@@ -59,6 +61,7 @@ def uploadImages(id, name_task, files):
     size = 0 
     totalSize = 0
     countTask = 1
+    idMVE = dbquery.get_projectCVAT(id)[0]
 
     for file in files:
         headfp, tailfp = ntpath.split(file.filename)
@@ -75,6 +78,7 @@ def uploadImages(id, name_task, files):
         size = size + Path(pathFile).stat().st_size
         if (size<int(max_size_load_file)):
             fs.append(pathFile)
+            dbquery.insert_MVSxCVAT_row(tailfp, idMVE, taskId)
         else:
             images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
             uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
@@ -87,6 +91,7 @@ def uploadImages(id, name_task, files):
                 createEmptyTask = requests.post('{}/tasks'.format(url_cvat), data=dataTask, headers={"Authorization": f'Token {keyLogin}'})
                 jsonObj = json.loads(createEmptyTask.text)
                 taskId = jsonObj['id']
+                dbquery.insert_MVSxCVAT_row(tailfp, idMVE, taskId)
     if (size>0): 
         images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
         uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
@@ -264,3 +269,27 @@ def get_projects_id():
             ids.append(result['id'])
     
     return ids
+
+def get_task_dataset(id, folderPath):
+    login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
+    jsonObj = json.loads(login.text)
+    keyLogin = jsonObj['key']
+
+    while True:
+        task = requests.get('{}/tasks/{}/dataset'.format(url_cvat, id), params={"action" : "download", "format":"CVAT for images 1.1", "location":"local"}, headers={"Authorization": f'Token {keyLogin}'})
+        if task.status_code == 200:
+            break
+    
+    folderPathzip = "dataset{}zip".format(id)
+    
+    with open(folderPathzip, 'wb') as fp:
+        fp.write(task.content)
+
+    # loading the temp.zip and creating a zip object
+    with ZipFile(folderPathzip, 'r') as zObject:
+    
+        # Extracting all the members of the zip 
+        # into a specific location.
+        zObject.extractall(path=folderPath)
+    
+    os.remove(folderPathzip)
