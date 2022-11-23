@@ -7,9 +7,11 @@
     padding: 0 5px 5px 5px;
     margin-right: 20px;
 }
+
 .equalButton {
     padding: 10px;
-  }
+}
+
 .select-drop{
     margin-right: 20px;
     margin-top: 20px;
@@ -17,9 +19,18 @@
     max-width: 100% !important;
 }
 
+.select-drop-compare{
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 20px;
+    width: 45% !important;
+    max-width: 100% !important;
+}
+
 .card-header .fa {
     transition: .3s transform ease-in-out;
 }
+
 .card-header .collapsed .fa {
     transform: rotate(90deg);
 }

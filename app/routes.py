@@ -1,6 +1,6 @@
 import time
 from flask import render_template,request, jsonify, redirect, session, url_for, make_response
-from app import app, CVATapi, dbquery, truthdb, predictdb
+from app import app, CVATapi, comparedb, dbquery, truthdb, predictdb
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -262,34 +262,16 @@ def compare(id):
     predictions = dbquery.get_predList(id)
     return render_template('compare.html', id=id, predictions=predictions)
 
-# Confronto predizioni ## E' SOLO UNA PROVA
-@app.route("/compare_predictions/<id>")
+# Confronto predizioni 
+@app.route("/compare_predictions/<id>",  methods=['POST', 'GET'])
 def compare_predictions(id):
-    pred1 = request.args.get('pred1')
-    pred2 = request.args.get('pred2')
-    idsMVS1 = dbquery.get_prediction(pred1)
-    folderPath1 = "datasets/{}/dataset{}".format(pred1, id)
-    idsMVS2 = dbquery.get_prediction(pred2)
-    folderPath2 = "datasets/{}/dataset{}".format(pred2, id)
-    images = dbquery.get_MVSxCVAT(id)
-    tasks1 = []
-    for idMVS in idsMVS1:
-        for img in images:
-            if idMVS in img[0]:
-                if img[2] not in tasks1:
-                    tasks1.append(img[2])
-    for t in tasks1:
-        CVATapi.get_task_dataset(t, folderPath1)
+    if request.method == "POST":
+        pred1 = request.form['select-first-prediction']
+        pred2 = request.form['select-second-prediction']
+        
+        comparedb.compare_predictions(id, pred1, pred2)
 
-    tasks2 = []
-    for idMVS in idsMVS2:
-        for img in images:
-            if idMVS in img[0]:
-                if img[2] not in tasks1:
-                    tasks1.append(img[2])
-    for t in tasks1:
-        CVATapi.get_task_dataset(t, folderPath2)
-    return redirect(url_for('index'))
+    return redirect(url_for('compare', id=id))
 
 ## GESTIONE ERRORI  ##
 #####################################################################################################
