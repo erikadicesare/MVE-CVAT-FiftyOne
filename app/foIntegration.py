@@ -2,90 +2,91 @@ import fiftyone as fo
 import mysql.connector
 from mysql.connector import errorcode
 import ntpath
+from app import dbquery
 
-def create_fo_dataset(id):
+def create_fo_dataset(id, path, pred1, pred2, hasAnnotations):
     # The directory containing the source images
-    data_path = "../task45/images/"
+    #data_path = "../task45/images/"
+    data_path = path + "images/"
 
     # The path to the COCO labels JSON file
-    labels_path = "../task45/annotations.xml"
+    #labels_path = "../task45/annotations.xml"
+    labels_path = path + "annotation.xml"
 
     export_dir = "/home/musausr/fiftyone/datasets_generated/" + id
 
-    # Import the dataset
-    dataset = fo.Dataset.from_dir(
-        dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
-        label_field="prediction1",
-        data_path=data_path,
-        labels_path=labels_path,
-        include_id=True,
-        name=id
-    )
+    if hasAnnotations == True:
+        # Import the dataset
+        dataset = fo.Dataset.from_dir(
+            dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
+            label_field="prediction",
+            data_path=data_path,
+            labels_path=labels_path,
+            include_id=True,
+            name=id
+        )
 
-    # Export the dataset
-    dataset.export(
-        export_dir=export_dir,
-        dataset_type=fo.types.CVATImageDataset
-    )
+        # Export the dataset
+        dataset.export(
+            export_dir=export_dir,
+            dataset_type=fo.types.CVATImageDataset
+        )
+    else:
+        # Import the dataset
+        dataset = fo.Dataset.from_dir(
+            dataset_dir=data_path,
+            dataset_type=fo.types.ImageDirectory,
+            name=id
+        )
 
-    #session = fo.launch_app(dataset)
+        # Export the dataset
+        dataset.export(
+            export_dir=export_dir,
+            dataset_type=fo.types.ImageDirectory
+        )
+
+    get_numeric_data(dataset, pred1, 'idMVS')
+    if pred2 != "/":
+        get_numeric_data(dataset, pred2, 'idMVS')
+ 
+
+    session = fo.launch_app(dataset)
 
 
-def get_numeric_data(dataset, dbname, tablename, filepathfield):
+def get_numeric_data(dataset, pred, filepathfield):
 
-    # set params to connect to db
-    params = {
-        'user': "root", 
-        'database': dbname
-    }
-
-    mydb = mysql.connector.connect(**params)
-
-    mycursor = mydb.cursor()
-
-    # query to get the names of the columns
-    mycursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s", (dbname, tablename))
-
-    columns = mycursor.fetchall()
-
-    # query to get the type of the columns
-    mycursor.execute("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s", (dbname, tablename))
-
-    datatype = mycursor.fetchall()
-
+    columns = dbquery.get_columns_name_table(pred)
+    
+    datatype = dbquery.get_columns_type_table(pred)
+   
     # loop to add the fields (equal to the name of the columns)
-    i = 0
+
     excluded_field = []
-    for x in columns:
+    for index, x in enumerate(columns):
         if (x[0] != filepathfield):
-            if (datatype[i][0] == 'float'):
-                dataset.add_sample_field(x[0], fo.FloatField)
-            elif (datatype[i][0] == 'int'):
-                dataset.add_sample_field(x[0], fo.IntField)
-            elif (datatype[i][0] == 'varchar'):
-                dataset.add_sample_field(x[0], fo.StringField)
+            if (datatype[index][0] == 'float' or datatype[index][0] == 'double'):
+                dataset.add_sample_field(x[0]+"_"+pred, fo.FloatField)
+            elif (datatype[index][0] == 'int' or datatype[index][0] == 'bigint'):
+                dataset.add_sample_field(x[0]+"_"+pred, fo.IntField)
+            elif (datatype[index][0] == 'varchar'):
+                dataset.add_sample_field(x[0]+"_"+pred, fo.StringField)
             else:
                 excluded_field.append(x[0])
-        i = i + 1
 
-    # query to select all the rows of the table with the data   
-    sql = "SELECT * FROM " + tablename
-    mycursor.execute(sql)
-
-    myresult = mycursor.fetchall()
-
-    mydb.close()
-
+    predictions = dbquery.get_prediction(pred)
+    
     # Add numeric values taken from the rows to the field just created 
     with fo.ProgressBar() as pb:
         for sample in pb(dataset):
             i = 0
             sampleFilePath = sample.filepath
             headfp, tailfp = ntpath.split(sampleFilePath)
-            for x in myresult:
-                if (tailfp == x[0]):
+
+            for x in predictions: 
+                if (x[0] in tailfp):
                     for z in columns:
                         if (z[0] != filepathfield) and (z[0] not in excluded_field):
-                            sample[z[0]] = x[i]
+                            field = z[0]+"_"+pred
+                            sample[field] = x[i]
                         i = i + 1
             sample.save() 

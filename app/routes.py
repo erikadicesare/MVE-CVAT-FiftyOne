@@ -263,6 +263,17 @@ def compare(id):
     return render_template('compare.html', id=id, predictions=predictions)
 
 # Confronto predizioni 
+@app.route("/view_prediction/<id>",  methods=['POST', 'GET'])
+def view_prediction(id):
+    if request.method == "POST":
+        pred = request.form['select-prediction']
+        
+        comparedb.view_prediction(id, pred)
+
+    return redirect(url_for('compare', id=id))
+
+
+# Confronto predizioni 
 @app.route("/compare_predictions/<id>",  methods=['POST', 'GET'])
 def compare_predictions(id):
     if request.method == "POST":

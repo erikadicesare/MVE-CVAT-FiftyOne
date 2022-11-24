@@ -21,7 +21,10 @@
                   <div class="card-body">
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
                       <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Predizione vs Predizione</button>
+                        <button class="nav-link active" id="pills-pred-tab" data-bs-toggle="pill" data-bs-target="#pills-pred" type="button" role="tab" aria-controls="pills-pred" aria-selected="true">Predizione</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="false">Predizione vs Predizione</button>
                       </li>
                       <li class="nav-item" role="presentation">
                         <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Predizione vs Verità</button>
@@ -29,7 +32,25 @@
                     </ul>
                     <br/>
                     <div class="tab-content" id="pills-tabContent">
-                      <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                      <div class="tab-pane fade show active" id="pills-pred" role="tabpanel" aria-labelledby="pills-pred-tab">
+                        <form  action ="{{ url_for('view_prediction', id=id) }}"method = "POST" enctype="multipart/form-data">
+                          <div class="row justify-content-center">
+                            <select class="form-select select-drop-compare" id="select-prediction" name="select-prediction" aria-label="Default select example">
+                              {% for pred in predictions %}
+                                <option value="{{pred['IdPrediction']}}">{{pred['IdPrediction']}}, {{pred['Name']}}</option>  
+                              {% endfor %}
+                              
+                            </select>
+                          </div>
+                          <br/>
+                          <div class="row justify-content-center">
+                            <div class="col-4 text-center">
+                              <input type="submit" value="Confronta" class="btn btn-primary"/><br/>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
                         <form  action ="{{ url_for('compare_predictions', id=id) }}"method = "POST" enctype="multipart/form-data">
                           <div class="row justify-content-center">
                             <select class="form-select select-drop-compare" id="select-first-prediction" name="select-first-prediction" aria-label="Default select example">

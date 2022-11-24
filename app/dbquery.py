@@ -488,7 +488,7 @@ def insert_MVSxCVAT_row(idCVAT, idMVE, idTask):
     mydb.close()
 
 # prendo la colonna idMVS di una determinata tabella PredictionX
-def get_prediction(table_name):
+def get_prediction_ids(table_name):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
@@ -514,6 +514,48 @@ def get_MVSxCVAT(idMVE):
     mycursor = mydb.cursor()
 
     mycursor.execute("SELECT * FROM MVSxCVAT WHERE IdProjectMVE=%s", (idMVE,))
+
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return results
+
+def get_columns_name_table(name_table):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    # query to get the names of the columns
+    mycursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s", (name_db, name_table))
+
+    columns = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return columns
+
+def get_columns_type_table(name_table):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    # query to get the type of the columns
+    mycursor.execute("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s", (name_db, name_table))
+
+    datatype = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return datatype
+
+def get_prediction(table_name):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    sql = "SELECT * FROM {};".format(table_name)
+    mycursor.execute(sql)
 
     results = mycursor.fetchall()
 
