@@ -262,7 +262,7 @@ def compare(id):
     predictions = dbquery.get_predList(id)
     return render_template('compare.html', id=id, predictions=predictions)
 
-# Confronto predizioni 
+# Visualizza predizione
 @app.route("/view_prediction/<id>",  methods=['POST', 'GET'])
 def view_prediction(id):
     if request.method == "POST":
@@ -272,7 +272,6 @@ def view_prediction(id):
 
     return redirect(url_for('compare', id=id))
 
-
 # Confronto predizioni 
 @app.route("/compare_predictions/<id>",  methods=['POST', 'GET'])
 def compare_predictions(id):
@@ -281,6 +280,16 @@ def compare_predictions(id):
         pred2 = request.form['select-second-prediction']
         
         comparedb.compare_predictions(id, pred1, pred2)
+
+    return redirect(url_for('compare', id=id))
+
+# Confronto predizione vs verita 
+@app.route("/compare_pred_truth/<id>",  methods=['POST', 'GET'])
+def compare_pred_truth(id):
+    if request.method == "POST":
+        pred = request.form['select-prediction']
+        
+        comparedb.compare_pred_truth(id, pred)
 
     return redirect(url_for('compare', id=id))
 

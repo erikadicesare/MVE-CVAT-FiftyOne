@@ -522,6 +522,7 @@ def get_MVSxCVAT(idMVE):
 
     return results
 
+# prendo i nomi delle colonne di una tabella
 def get_columns_name_table(name_table):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -536,6 +537,7 @@ def get_columns_name_table(name_table):
 
     return columns
 
+# prendo i tipi delle colonne di una tabella
 def get_columns_type_table(name_table):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
@@ -550,12 +552,39 @@ def get_columns_type_table(name_table):
 
     return datatype
 
+# prendo tutti campi di una tabella 
 def get_prediction(table_name):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
     sql = "SELECT * FROM {};".format(table_name)
     mycursor.execute(sql)
+
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return results
+
+# prendo i nomi delle colonne di una tabella
+def get_prediction_columns(table_name):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s", (name_db, table_name))
+    columns = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return columns
+
+def get_truth_values(idSample):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT * FROM TruthValues WHERE IdTruth=%s", (idSample,))
 
     results = mycursor.fetchall()
 

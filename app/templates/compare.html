@@ -74,7 +74,24 @@
                           </div>
                         </form>
                       </div>
-                      <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">...</div>
+                      <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                        <form  action ="{{ url_for('compare_pred_truth', id=id) }}"method = "POST" enctype="multipart/form-data">
+                          <div class="row justify-content-center">
+                            <select class="form-select select-drop-compare" id="select-prediction" name="select-prediction" aria-label="Default select example">
+                              {% for pred in predictions %}
+                                <option value="{{pred['IdPrediction']}}">{{pred['IdPrediction']}}, {{pred['Name']}}</option>  
+                              {% endfor %}
+                              
+                            </select>
+                          </div>
+                          <br/>
+                          <div class="row justify-content-center">
+                            <div class="col-4 text-center">
+                              <input type="submit" value="Confronta" class="btn btn-primary"/><br/>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
                     </div>
                   </div>
                 </div>
