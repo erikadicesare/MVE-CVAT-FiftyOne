@@ -1,3 +1,5 @@
+import os
+import shutil
 import time
 from flask import render_template,request, jsonify, redirect, session, url_for, make_response
 from app import app, CVATapi, comparedb, dbquery, truthdb, predictdb
@@ -189,7 +191,29 @@ def upload(id):
 def uploader(id):
     name_task = request.form['name-task']
     files = request.files.getlist('fileList')
-    CVATapi.uploadImages(id, name_task, files)
+    uuid = request.form.get('uuid')
+
+    keyLogin = CVATapi.generate_key_login()
+    totalSize = CVATapi.get_files(files, uuid)
+    idMVE = dbquery.get_projectCVAT(id)[0]
+    
+    directory = 'temp{}'.format(uuid)
+    dir = os.listdir(directory)
+    current_task = 1
+
+    # Checking if the list is empty or not
+    while len(dir) != 0:
+        taskId = CVATapi.create_empty_task(id, name_task, current_task, keyLogin)
+
+        fs = CVATapi.select_images(uuid, idMVE, taskId)
+
+        CVATapi.upload_images(uuid, fs, keyLogin, taskId)
+        current_task = current_task + 1
+        dir = os.listdir(directory)
+
+    shutil.rmtree(directory)
+    
+    #CVATapi.uploadImages(id, name_task, files, uuid)
     time.sleep(4)
     return redirect(url_for('project', id=id))
 
