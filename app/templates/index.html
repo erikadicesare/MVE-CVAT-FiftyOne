@@ -31,7 +31,7 @@
                                             <p style="text-align: center;margin: 0px 0px 0px;">{{projectMVE[1]}}<br/>Descrizione: {{projectMVE[2]}}</p>
                                             <p style="margin: 0px 0px 0px;">
                                               <a href="{{ url_for('edit_projectMVE', id=projectMVE[0]) }}" style="margin-right: 10px;"><img src="{{url_for('static',filename = 'data/icons/edit-icon.png')}}"  width="25" height="25"></a>
-                                              <input type="button" value="espandi" data-toggle="collapse" class="btn btn-info"></input>
+                                              <button type="button" data-toggle="collapse" class="btn btn-info down"><img src="{{url_for('static',filename = 'data/icons/ad.png')}}"  width="25" height="25"></button>
                                             </p>
                                             
                                         </div>
@@ -75,11 +75,19 @@
     <br/>
     <script>
         $('[data-toggle="collapse"]').click(function () {
-            // $('.notshow').removeClass('nohide');
-            /*if (this.value=="+") this.value = "-";
-            else this.value = "+";*/
-            if (this.value=="espandi") this.value = "riduci";
-            else this.value = "espandi";
+            
+            if (this.classList.contains('down')) {
+                this.classList.remove('down');
+                this.classList.add('up');
+                $(this).find('img').remove();
+                $(this).append('<img src="{{url_for("static",filename = "data/icons/au.png")}}" width="25" height="25"/>')
+            } else if (this.classList.contains('up')) {
+                this.classList.remove('up');
+                this.classList.add('down');
+                $(this).find('img').remove();
+                $(this).append('<img src="{{url_for("static",filename = "data/icons/ad.png")}}" width="25" height="25"/>')
+            }
+
             $(this).closest('.card').find('.notshow').addClass('nohide').toggle();
             $('.notshow').each(function() {
                 if(!$(this).hasClass('nohide')){
