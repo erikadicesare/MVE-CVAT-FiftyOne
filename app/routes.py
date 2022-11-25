@@ -94,6 +94,7 @@ def delete_projectMVE(id):
     # prendo i progetti cvat associati al progetto mve da eliminare
     prjsCVAT = dbquery.get_projectsCVAT(id)  
     dbquery.delete_projectMVE(id)
+    dbquery.delete_MVSxCVAT_MVE(id)
     
     # se esistono elimino ogni progetto cvat
     if (len(prjsCVAT) != 0):
@@ -108,7 +109,7 @@ def delete_projectMVE(id):
 # VISUALIZZAZIONE di un progetto CVAT
 @app.route("/project/<id>")
 def project(id):
-    
+
     # controlliamo che il progetto esista
     project = dbquery.get_projectCVAT(id)
 
@@ -160,6 +161,10 @@ def delete_projectCVAT(id):
     if (project == []):
         return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
     
+    tasks = CVATapi.get_tasks_ids(id)
+    for task in tasks:
+        dbquery.delete_MVSxCVAT_task(task)
+        
     dbquery.delete_projectCVAT(id)
     CVATapi.delete_project(id)
 
@@ -185,7 +190,7 @@ def uploader(id):
     name_task = request.form['name-task']
     files = request.files.getlist('fileList')
     CVATapi.uploadImages(id, name_task, files)
-    time.sleep(2)
+    time.sleep(4)
     return redirect(url_for('project', id=id))
 
 # ELIMINAZIONE di un task
@@ -194,6 +199,7 @@ def delete_task(id):
 
     prj_id = request.args.get('prj_id')
     CVATapi.delete_task(id)
+    dbquery.delete_MVSxCVAT_task(id)
 
     return redirect(url_for('project', id=prj_id))
 

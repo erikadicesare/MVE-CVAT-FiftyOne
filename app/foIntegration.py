@@ -4,19 +4,17 @@ from mysql.connector import errorcode
 import ntpath
 from app import dbquery
 
-def create_fo_dataset(id, path, pred1, pred2, hasAnnotations):
-    # The directory containing the source images
-    #data_path = "../task45/images/"
+def create_fo_dataset(id, path, pred, predOrTruth, hasAnnotations):
+    # cartella con le immagini
     data_path = path + "images/"
 
-    # The path to the COCO labels JSON file
-    #labels_path = "../task45/annotations.xml"
+    # file con annotazioni xml
     labels_path = path + "annotation.xml"
 
     export_dir = "/home/musausr/fiftyone/datasets_generated/" + id
 
     if hasAnnotations == 'True':
-        # Import the dataset
+        # importo il dataset con immagini e annotazioni
         dataset = fo.Dataset.from_dir(
             dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
             label_field="prediction",
@@ -26,76 +24,37 @@ def create_fo_dataset(id, path, pred1, pred2, hasAnnotations):
             name=id
         )
 
-        # Export the dataset
+        # esporto il dataset
         dataset.export(
             export_dir=export_dir,
             dataset_type=fo.types.CVATImageDataset
         )
     else:
-        # Import the dataset
+        # importo il dataset con sole immagini
         dataset = fo.Dataset.from_dir(
             dataset_dir=data_path,
             dataset_type=fo.types.ImageDirectory,
             name=id
         )
 
-        # Export the dataset
+        # esporto il dataset
         dataset.export(
             export_dir=export_dir,
             dataset_type=fo.types.ImageDirectory
         )
 
-    get_numeric_data(dataset, pred1, 'idMVS')
-    if pred2 != "/":
-        get_numeric_data(dataset, pred2, 'idMVS')
- 
-
-    session = fo.launch_app(dataset)
-
-
-def create_fo_dataset_truth(id, path, pred, hasAnnotations):
-    # The directory containing the source images
-    #data_path = "../task45/images/"
-    data_path = path + "images/"
-
-    # The path to the COCO labels JSON file
-    #labels_path = "../task45/annotations.xml"
-    labels_path = path + "annotation.xml"
-
-    export_dir = "/home/musausr/fiftyone/datasets_generated/" + id
-
-    if hasAnnotations == 'True':
-        # Import the dataset
-        dataset = fo.Dataset.from_dir(
-            dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
-            label_field="prediction",
-            data_path=data_path,
-            labels_path=labels_path,
-            include_id=True,
-            name=id
-        )
-
-        # Export the dataset
-        dataset.export(
-            export_dir=export_dir,
-            dataset_type=fo.types.CVATImageDataset
-        )
-    else:
-        # Import the dataset
-        dataset = fo.Dataset.from_dir(
-            dataset_dir=data_path,
-            dataset_type=fo.types.ImageDirectory,
-            name=id
-        )
-
-        # Export the dataset
-        dataset.export(
-            export_dir=export_dir,
-            dataset_type=fo.types.ImageDirectory
-        )
     get_numeric_data(dataset, pred, 'idMVS')
 
-    return dataset
+    # se il confronto è tra predizione e verita
+    if predOrTruth == 'Truth':
+        return dataset
+   
+    # se predOrTruth è uguale a / significa che non è un confronto ma la visualizzazione di una sola predizione
+    if predOrTruth != "/":
+        get_numeric_data(dataset, predOrTruth, 'idMVS')
+
+    # lancio l'app fiftyone 
+    session = fo.launch_app(dataset)
 
 def get_numeric_data(dataset, pred, filepathfield):
 
@@ -103,8 +62,7 @@ def get_numeric_data(dataset, pred, filepathfield):
     
     datatype = dbquery.get_columns_type_table(pred)
    
-    # loop to add the fields (equal to the name of the columns)
-
+    # loop per aggiungere i campi nel dataset fiftyone (uguali al nome delle colonne della tabella predictionX)
     excluded_field = []
     for index, x in enumerate(columns):
         if (x[0] != filepathfield):
@@ -117,9 +75,10 @@ def get_numeric_data(dataset, pred, filepathfield):
             else:
                 excluded_field.append(x[0])
 
+    # prendo tutti i campi della tabella prediction
     predictions = dbquery.get_prediction(pred)
     
-    # Add numeric values taken from the rows to the field just created 
+    # aggiungo il valore preso dalle righe ai campi appena creati nel dataset
     with fo.ProgressBar() as pb:
         for sample in pb(dataset):
             i = 0
@@ -137,6 +96,7 @@ def get_numeric_data(dataset, pred, filepathfield):
 
 def add_sample_field(dataset, name_field, type_field, value_field, idMVS):
     
+    # aggiungo il campo passato come parametro al dataset fiftyone (controllo il tipo)
     if (type_field == 'float' or type_field == 'double'):
         dataset.add_sample_field(name_field+"_Truth", fo.FloatField)
     elif (type_field == 'int' or type_field == 'bigint'):
@@ -146,6 +106,7 @@ def add_sample_field(dataset, name_field, type_field, value_field, idMVS):
     else:
         excluded_field = name_field
     
+    # aggiungo il valore passato come parametro al campo appena creato
     with fo.ProgressBar() as pb:
         for sample in pb(dataset):
             sampleFilePath = sample.filepath

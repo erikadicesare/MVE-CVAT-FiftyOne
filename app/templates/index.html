@@ -42,7 +42,7 @@
                                                 <a class="btn btn-primary" href="{{ url_for('new_projectCVAT', id_prj_MVE=projectMVE[0], name_prj_MVE=projectMVE[1]) }}" role="button">Nuovo progetto CVAT</a>                                                
                                                 <a class="btn btn-primary" href="{{ url_for('upload_truth', id=projectMVE[0]) }}" role="button">Carica verità</a>
                                                 <a class="btn btn-primary" href="{{ url_for('upload_prediction', id=projectMVE[0]) }}" role="button">Carica predizioni</a>
-                                                <a class="btn btn-info float-end" href="{{ url_for('compare', id=projectMVE[0]) }}" role="button">Confronta</a>
+                                                <a class="btn btn-outline-primary float-end" href="{{ url_for('compare', id=projectMVE[0]) }}" role="button">Confronta</a>
                                               </div>
                                               <div>
                                                 {% for pCVAT in projectsCVAT %}
@@ -74,9 +74,6 @@
     <br/>
     <br/>
     <script>
-        var projects = JSON.parse('{{ projectsMVE | tojson | safe}}');
-        console.log(projects)
-
         $('[data-toggle="collapse"]').click(function () {
             // $('.notshow').removeClass('nohide');
             /*if (this.value=="+") this.value = "-";

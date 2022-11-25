@@ -509,7 +509,7 @@ def get_prediction_ids(table_name):
     return ids
 
 # seleziono le righe della tabella MVSxCVAT che hanno un determinato IdProjectMVE
-def get_MVSxCVAT(idMVE):
+def get_MVSxCVAT_byMVE(idMVE):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
@@ -521,6 +521,42 @@ def get_MVSxCVAT(idMVE):
     mydb.close()
 
     return results
+
+
+# seleziono le righe della tabella MVSxCVAT
+def get_MVSxCVAT(idCVAT, idMVE):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT COUNT(*) FROM MVSxCVAT WHERE IdCVAT=%s AND IdProjectMVE=%s", (idCVAT, idMVE))
+    count = mycursor.fetchone()
+    mycursor.close()
+    mydb.close()
+    return count[0]
+
+# cancello le righe della tabella MVSxCVAT che hanno un determinato idTask
+def delete_MVSxCVAT_task(idTask):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    
+    mycursor.execute("DELETE FROM MVSxCVAT WHERE IdTask=%s", (idTask,))
+
+    mydb.commit()
+
+    mycursor.close()
+    mydb.close()
+
+# cancello le righe della tabella MVSxCVAT che hanno un determinato idMVE
+def delete_MVSxCVAT_MVE(idMVE):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    
+    mycursor.execute("DELETE FROM MVSxCVAT WHERE IdProjectMVE=%s", (idMVE,))
+
+    mydb.commit()
+
+    mycursor.close()
+    mydb.close()
 
 # prendo i nomi delle colonne di una tabella
 def get_columns_name_table(name_table):
@@ -580,6 +616,7 @@ def get_prediction_columns(table_name):
 
     return columns
 
+# prendo i valori corrispondenti ad un certo idSample dalla tabella TruthValues
 def get_truth_values(idSample):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
