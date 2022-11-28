@@ -291,4 +291,39 @@ def compare_pred_truth(id, pred):
             
     foIntegration.launch_app(dataset)
 
-   
+def get_comparisons():
+    root='datasets'
+    dirlist = [ item for item in os.listdir(root) if os.path.isdir(os.path.join(root, item)) ]
+    dirlist.sort(key=lambda f: os.path.getmtime(os.path.join(root, f)), reverse=True)
+    comparisons = []
+    i = len(dirlist)
+    for dir_name in dirlist:
+        if "Truth" in dir_name:
+            dir_type = "Predizione vs Verità"
+            compare = dir_name.split("x")
+            comp = {
+                "index": i,
+                "dir_type": dir_type,
+                "compare": compare,
+                "dir_name": dir_name
+            }
+        elif "x" not in dir_name:
+            dir_type = "Predizione"
+            comp = {
+                "index": i,
+                "dir_type": dir_type,
+                "compare": dir_name,
+                "dir_name": dir_name
+            }
+        else:
+            dir_type = "Predizione vs Predizione"
+            compare = dir_name.split("x")
+            comp = {
+                "index": i,
+                "dir_type": dir_type,
+                "compare": compare,
+                "dir_name": dir_name
+            }
+        comparisons.append(comp)
+        i = i - 1 
+    return comparisons

@@ -213,7 +213,6 @@ def uploader(id):
 
     shutil.rmtree(directory)
     
-    #CVATapi.uploadImages(id, name_task, files, uuid)
     time.sleep(4)
     return redirect(url_for('project', id=id))
 
@@ -289,8 +288,9 @@ def delete_prediction(id):
 # pagina principale
 @app.route("/compare/<id>")
 def compare(id):
+    comparisons = comparedb.get_comparisons()
     predictions = dbquery.get_predList(id)
-    return render_template('compare.html', id=id, predictions=predictions)
+    return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons)
 
 # Visualizza predizione
 @app.route("/view_prediction/<id>",  methods=['POST', 'GET'])
@@ -320,6 +320,27 @@ def compare_pred_truth(id):
         pred = request.form['select-prediction']
         
         comparedb.compare_pred_truth(id, pred)
+
+    return redirect(url_for('compare', id=id))
+
+# ELIMINAZIONE di un confronto
+@app.route("/delete_compare/<dir_name>")
+def delete_compare(dir_name):
+    shutil.rmtree('datasets/'+dir_name)
+    return redirect(url_for('compare', id=id))
+
+# Visualizza qualcosa di gia esistente
+@app.route("/compare_existing/<id>",  methods=['POST', 'GET'])
+def compare_existing(id):
+    pred1 = request.args.get('pred1')
+    tab = request.args.get('pred2')
+    print(tab)
+    if (tab == "/"):
+        comparedb.view_prediction(id, pred1)
+    elif (tab == "Truth"):
+        comparedb.compare_pred_truth(id, pred1)
+    else:
+        comparedb.compare_predictions(id, pred1, tab)
 
     return redirect(url_for('compare', id=id))
 
