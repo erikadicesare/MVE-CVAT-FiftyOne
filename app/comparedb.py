@@ -291,7 +291,11 @@ def compare_pred_truth(id, pred):
             
     foIntegration.launch_app(dataset)
 
-def get_comparisons():
+def get_comparisons(idMVE):
+
+    predictions = dbquery.get_predList_ids(idMVE)
+    print(predictions)
+
     root='datasets'
     dirlist = [ item for item in os.listdir(root) if os.path.isdir(os.path.join(root, item)) ]
     dirlist.sort(key=lambda f: os.path.getmtime(os.path.join(root, f)), reverse=True)
@@ -299,31 +303,37 @@ def get_comparisons():
     i = len(dirlist)
     for dir_name in dirlist:
         if "Truth" in dir_name:
-            dir_type = "Predizione vs Verità"
             compare = dir_name.split("x")
-            comp = {
-                "index": i,
-                "dir_type": dir_type,
-                "compare": compare,
-                "dir_name": dir_name
-            }
+            if compare[0] in predictions:
+                dir_type = "Predizione vs Verità"
+                comp = {
+                    "index": i,
+                    "dir_type": dir_type,
+                    "compare": compare,
+                    "dir_name": dir_name
+                }
+                comparisons.append(comp)
         elif "x" not in dir_name:
-            dir_type = "Predizione"
-            comp = {
-                "index": i,
-                "dir_type": dir_type,
-                "compare": dir_name,
-                "dir_name": dir_name
-            }
+            if dir_name in predictions:
+                dir_type = "Predizione"
+                comp = {
+                    "index": i,
+                    "dir_type": dir_type,
+                    "compare": dir_name,
+                    "dir_name": dir_name
+                }
+                comparisons.append(comp)
         else:
-            dir_type = "Predizione vs Predizione"
             compare = dir_name.split("x")
-            comp = {
-                "index": i,
-                "dir_type": dir_type,
-                "compare": compare,
-                "dir_name": dir_name
-            }
-        comparisons.append(comp)
+            if compare[0] in predictions:
+                dir_type = "Predizione vs Predizione"
+                comp = {
+                    "index": i,
+                    "dir_type": dir_type,
+                    "compare": compare,
+                    "dir_name": dir_name
+                }
+                comparisons.append(comp)
+    
         i = i - 1 
     return comparisons

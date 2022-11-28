@@ -77,8 +77,8 @@ def read_file(file, idMVE):
 
 def create_row_truth_values(idMVE, data, i, col, columns):
 
-    # Controllo se esiste gia una verita con il nome corrente
-    sampleNames = dbquery.get_sampleNames_truth()
+    # Controllo se esiste gia una verita con il nome corrente dello specifico progetto mve
+    sampleNames = dbquery.get_sampleNames_truth_MVE(idMVE)
     if data[col][i] in sampleNames:
         return i
 

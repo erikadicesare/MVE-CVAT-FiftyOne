@@ -284,6 +284,25 @@ def get_sampleNames_truth():
 
     return names
 
+# ottento i samples name dalla tabella Truth di uno specifico progetto mve
+def get_sampleNames_truth_MVE(idMVE):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT Name FROM Truth WHERE IdProjectMVE=%s", (idMVE,))
+    sampleNames = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    names = []
+    if (len(sampleNames) != 0):
+
+        for sName in sampleNames:
+            names.append(sName[0])
+
+    return names
+
 # ottento i samples name dalla tabella Truth
 def get_id_from_name_truth(name):
     mydb = mysql.connector.connect(**params)
@@ -430,6 +449,25 @@ def get_predList(idMVE):
         }
         predictions.append(pred)
     #get_n_rows_for_prediction(2)
+
+    return predictions
+
+
+# Prendo gli id della tabella PredList che hanno un determinato progetto mve associato
+def get_predList_ids(idMVE):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT IdPrediction FROM PredList WHERE IdProjectMVE=%s", (idMVE,))
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    predictions = []
+
+    for pred in results:
+        predictions.append(pred[0])
 
     return predictions
 
