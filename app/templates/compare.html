@@ -45,7 +45,7 @@
                           <br/>
                           <div class="row justify-content-center">
                             <div class="col-4 text-center">
-                              <input type="submit" value="Confronta" class="btn btn-primary"/><br/>
+                              <input id="submit-pred" type="submit" value="Confronta" onclick="loading();" class="btn btn-primary"/><br/>
                             </div>
                           </div>
                         </form>
@@ -69,7 +69,7 @@
                           <br/>
                           <div class="row justify-content-center">
                             <div class="col-4 text-center">
-                              <input type="submit" value="Confronta" class="btn btn-primary"/><br/>
+                              <input id="submit-pred-pred" type="submit" value="Confronta" onclick="loading();" class="btn btn-primary"/><br/>
                             </div>
                           </div>
                         </form>
@@ -87,12 +87,14 @@
                           <br/>
                           <div class="row justify-content-center">
                             <div class="col-4 text-center">
-                              <input type="submit" value="Confronta" class="btn btn-primary"/><br/>
+                              <input id="submit-pred-truth" type="submit" value="Confronta" onclick="loading();" class="btn btn-primary"/><br/>
                             </div>
                           </div>
                         </form>
                       </div>
                     </div>
+                    <br/>
+                    <div id="loading" style="display:none; align-items:center; justify-content:center;"><img src="{{url_for('static',filename = 'data/icons/loading.gif')}}" alt="" width="100" height="100"/></div>
                   </div>
                 </div>
 
@@ -137,7 +139,7 @@
                                 <td style="text-align: center;"><a href="{{ url_for('compare_existing', id=id, pred1=comp['compare'][0], pred2='Truth') }}"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
                                 {%endif%}
                                
-                                <td style="text-align: center;"><a href="{{ url_for('delete_compare', dir_name=comp['dir_name']) }}" onclick="return confirm('Sei sicuro di voler eliminare questo confronto?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  style="margin-bottom: 2px;"width="15" height="15"></a></td>
+                                <td style="text-align: center;"><a href="{{ url_for('delete_compare', id=id, dir_name=comp['dir_name']) }}" onclick="return confirm('Sei sicuro di voler eliminare questo confronto?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  style="margin-bottom: 2px;"width="15" height="15"></a></td>
                               </tr>
                             {%endfor%}
                           </tbody>
@@ -157,29 +159,14 @@
     </div>
   </div>
   <script>
-   /* $(function(){
-      // bind change event to select
-      $('#select-first-prediction').on('change', function () {
-        console.log($(this).val())
-          var url = $(this).val(); // get selected value
-          
-          if (url) { // require a URL
-              window.location = "/project/"+url; // redirect
-          }
-          return false; 
-      });
-
-      $('#select-second-prediction').on('change', function () {
-        console.log($(this).val())
-          var url = $(this).val(); // get selected value
-          
-          if (url) { // require a URL
-              window.location = "/project/"+url; // redirect
-          }
-          return false; 
-      });
-
-  });*/
+    const filler = document.getElementById("loading");
+    function loading() {
+      if (filler.style.display === "none") {
+        filler.style.display = "flex";
+      } else {
+        filler.style.display = "none";
+      }
+    }
 
 </script>
 {% endblock %}

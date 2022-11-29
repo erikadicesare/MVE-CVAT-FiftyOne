@@ -1,9 +1,13 @@
+import json
 import os
 import shutil
 import time
 from flask import render_template,request, jsonify, redirect, session, url_for, make_response
 from app import app, CVATapi, comparedb, dbquery, truthdb, predictdb
 from dotenv import load_dotenv
+from queue import Queue
+from threading import Thread
+from time import sleep
 
 load_dotenv()
 
@@ -172,13 +176,67 @@ def delete_projectCVAT(id):
 
     return redirect(url_for('index'))
 
+## TASK MANAGEMENT - THREAD ## 
+#####################################################################################################
+
+# La funzione prende dalla coda il primo task inserito poi in un ciclo for scorre tutte le richieste 
+# finche non trova qeulla con il task corrispondente. a quel punto prende i dati (uuid, nametask, id) 
+# e genera n task cvat con le immagini caricate
+def worker(queue):
+    while True:
+        # get the next task, blocking until one is available.
+        task = queue.get()
+        # The app is available to the worker, but be wary of
+        # using app services without locking.
+        ##### WORK TO DO IN BACKGROUND #####
+        
+        for request in requests:
+            if (request['task']==task):
+                print(request)
+                uuid = request['uuid']
+                name_task = request['name_task']
+                id = request['id_prjCVAT']
+                keyLogin = CVATapi.generate_key_login()
+
+                idMVE = dbquery.get_projectCVAT(id)[0]
+                
+                directory = 'temp{}'.format(uuid)
+                dir = os.listdir(directory)
+                current_task = 1
+
+                # Checking if the list is empty or not
+                while len(dir) != 0:
+                    taskId = CVATapi.create_empty_task(id, name_task, current_task, keyLogin)
+
+                    fs = CVATapi.select_images(uuid, idMVE, taskId)
+
+                    CVATapi.upload_images(uuid, fs, keyLogin, taskId)
+                    current_task = current_task + 1
+                    dir = os.listdir(directory)
+
+                shutil.rmtree(directory)
+        for request in requests.copy():
+            if (request['task']==task):
+                requests.remove(request)
+                
+                #duration = app.config.get('WORK_TIME', 3)
+                
+                #sleep(duration)  # simulate doing work
+                print("did task {!r}".format(task))
+
+# Give the worker thread a Queue that's shared with the app, and start
+# the worker. The worker will block immediately until a task is added
+# to the queue.
+work_queue = Queue()
+requests = []
+task = 0
+
 ## CARICAMENTO IMMAGINI - CREAZIONE DI TASK - ELIMINAZIONE TASK ##
 #####################################################################################################
 
 # CARICAMENTO immagini
 @app.route('/upload/<id>')
 def upload(id):
-    
     # controllo che il progetto sia esistente
     project = dbquery.get_projectCVAT(id)
     if (project == []):
@@ -187,33 +245,31 @@ def upload(id):
     return render_template('upload_img.html', id=id)
 
 # Caricamento effettivo delle immagini e creazione di n task a seconda del peso totale delle immagini
+# NB. questa rotta viene raggiunta quando viene eseguito il submit del form presente alla pagina upload_img.html;
+# ogni volta che viene fatto un submit viene incrementato il numero di task (niente a che fare con cvat, in qeusto caso è
+# una variabile globale) e viene creata una istanza this_request con i dati della richiesta corrente con anche il numero del task 
+# corrispondente. questa istanza viene aggiunta ad una lista di richieste (requests). viene creato un nuovo thread che chiama 
+# la funzione "warker" con parametro una coda (work_queue) di task. Vedi funzione per vedere cosa succede  
 @app.route('/uploader/<id>', methods=['POST', 'GET'])
 def uploader(id):
-    name_task = request.form['name-task']
+    this_name_task = request.form['name-task']
     files = request.files.getlist('fileList')
-    uuid = request.form.get('uuid')
-
-    keyLogin = CVATapi.generate_key_login()
-    totalSize = CVATapi.get_files(files, uuid)
-    idMVE = dbquery.get_projectCVAT(id)[0]
-    
-    directory = 'temp{}'.format(uuid)
-    dir = os.listdir(directory)
-    current_task = 1
-
-    # Checking if the list is empty or not
-    while len(dir) != 0:
-        taskId = CVATapi.create_empty_task(id, name_task, current_task, keyLogin)
-
-        fs = CVATapi.select_images(uuid, idMVE, taskId)
-
-        CVATapi.upload_images(uuid, fs, keyLogin, taskId)
-        current_task = current_task + 1
-        dir = os.listdir(directory)
-
-    shutil.rmtree(directory)
-    
-    time.sleep(4)
+    this_uuid = request.form.get('uuid')
+    totalSize = CVATapi.get_files(files, this_uuid)
+    global task
+    task += 1
+    this_request = {
+        'task': task,
+        'uuid': this_uuid,
+        'name_task': this_name_task,
+        'id_prjCVAT': id
+    }
+    global requests
+    requests.append(this_request)
+    print("add task {!r}".format(task))
+    work_queue.put(task)
+    worker_thread = Thread(target=worker, args=(work_queue,), daemon=True)
+    worker_thread.start()
     return redirect(url_for('project', id=id))
 
 # ELIMINAZIONE di un task
@@ -288,7 +344,7 @@ def delete_prediction(id):
 # pagina principale
 @app.route("/compare/<id>")
 def compare(id):
-    comparisons = comparedb.get_comparisons()
+    comparisons = comparedb.get_comparisons(id)
     predictions = dbquery.get_predList(id)
     return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons)
 
@@ -324,8 +380,9 @@ def compare_pred_truth(id):
     return redirect(url_for('compare', id=id))
 
 # ELIMINAZIONE di un confronto
-@app.route("/delete_compare/<dir_name>")
-def delete_compare(dir_name):
+@app.route("/delete_compare/<id>")
+def delete_compare(id):
+    dir_name = request.args.get('dir_name')
     shutil.rmtree('datasets/'+dir_name)
     return redirect(url_for('compare', id=id))
 
