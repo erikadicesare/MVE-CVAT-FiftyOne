@@ -16,6 +16,12 @@ load_dotenv()
 
 @app.before_request
 def before_request():
+
+    # controllo che il server cvat sia in run
+    #status = CVATapi.check_serverCVAT_connection()
+    #if status == 'Server not connect':
+        #return make_response(render_template("serverError.html", info="Server non connesso"), 404)
+    
     # controllo che i progetti cvat esistenti nel db siano esistenti anche su cvat (in questo modo 
     # eventuali progetti eliminati lato cvat saranno eliminati anche lato db)
     # p_cvat contiene i progetti esistenti su cvat, a prescindere da MVE

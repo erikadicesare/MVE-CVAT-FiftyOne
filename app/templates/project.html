@@ -132,15 +132,15 @@
     <script>
       
       $(function(){
-      // bind change event to select
-      $('#select-project').on('change', function () {
-          var url = $(this).val(); // get selected value
-          
-          if (url) { // require a URL
-              window.location = "/project/"+url; // redirect
-          }
-          return false;
+        // bind change event to select
+        $('#select-project').on('change', function () {
+            var url = $(this).val(); // get selected value
+            
+            if (url) { // require a URL
+                window.location = "/project/"+url; // redirect
+            }
+            return false;
+        });
       });
-    });
     </script>
 {% endblock %}

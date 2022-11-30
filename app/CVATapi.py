@@ -24,6 +24,17 @@ credentials = {
     "password": password
 }
 
+"""
+def check_serverCVAT_connection():
+    try:
+        login = requests.post('{}/auth/login'.format(url_cvat), json= credentials, timeout=10)
+        jsonObj = json.loads(login.text)
+        keyLogin = jsonObj['key']
+        return keyLogin
+    except:
+        return 'Server not connect'
+"""
+
 def generate_key_login():
 
     login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
