@@ -244,7 +244,7 @@ def get_tasks(id):
 
     keyLogin = generate_key_login()
 
-    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
+    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), params={"page_size" :1000},headers={"Authorization": f'Token {keyLogin}'})
     jsonTasks = json.loads(tasks.text)
     task = []
     for jsonTask in jsonTasks['results']:

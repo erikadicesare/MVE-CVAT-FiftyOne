@@ -68,12 +68,12 @@
 
               <div class="card-body p-md-5">
                 <div class="row justify-content-center">
-                  <div class="col-md-10 col-lg-6 col-xl-12 order-2 order-lg-1">
+                  <div class="col-md-10">
                     <a class="btn btn-primary" href="{{ url_for('upload', id=id) }}" role="button">Carica immagini</a>
                   </div>
                 </div>
                 <div class="row justify-content-center">
-                  <div class="col-md-10 col-lg-6 col-xl-12 order-2 order-lg-1">
+                  <div class="col-md-10">
 
                     <div class="card box-scrollable">
                       <div class="card-header d-flex justify-content-between align-items-center" id="headingOne">
@@ -130,6 +130,7 @@
       </div>
     </div>
     <script>
+      
       $(function(){
       // bind change event to select
       $('#select-project').on('change', function () {

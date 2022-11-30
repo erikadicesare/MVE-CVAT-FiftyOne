@@ -42,7 +42,6 @@
 <script>
   const filler = document.getElementById("loading");  
   function loading() {
-    console.log($('form')[0].checkValidity())
     //use on form
     if ($('form')[0].checkValidity()) {
       if (filler.style.display === "none") {
@@ -55,7 +54,6 @@
     
   var uuid = Math.random().toString().replace("0.", "")
   $('input[type=hidden]').val(uuid)
-  console.log(uuid);
   let picker = document.getElementById('picker');
   let files = []
   

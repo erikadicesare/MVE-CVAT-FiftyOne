@@ -126,6 +126,7 @@ def project(id):
     if (project == []):
         return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, info="progetto non esistente")
     
+    # l'api di cvat ritorna solo 10 task (in questo caso gli ultimi)
     tasks = CVATapi.get_tasks(id)
 
     return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, tasks=tasks, info="")
@@ -228,6 +229,8 @@ def worker(queue):
 # the worker. The worker will block immediately until a task is added
 # to the queue.
 work_queue = Queue()
+worker_thread = Thread(target=worker, args=(work_queue,), daemon=True)
+worker_thread.start()
 requests = []
 task = 0
 
@@ -237,6 +240,7 @@ task = 0
 # CARICAMENTO immagini
 @app.route('/upload/<id>')
 def upload(id):
+    print(requests)
     # controllo che il progetto sia esistente
     project = dbquery.get_projectCVAT(id)
     if (project == []):
@@ -268,8 +272,6 @@ def uploader(id):
     requests.append(this_request)
     print("add task {!r}".format(task))
     work_queue.put(task)
-    worker_thread = Thread(target=worker, args=(work_queue,), daemon=True)
-    worker_thread.start()
     return redirect(url_for('project', id=id))
 
 # ELIMINAZIONE di un task
