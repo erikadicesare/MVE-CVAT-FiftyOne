@@ -254,6 +254,15 @@ def upload(id):
 
     return render_template('upload_img.html', id=id)
 
+@app.route('/get_regex_file', methods=['GET', 'POST'])
+def get_regex_file():
+    if request.method == "POST":
+        data = request.get_json()
+        print(data)
+    
+    session['regex'+data['uuid']] = data['data']
+
+    return "ok"
 # Caricamento effettivo delle immagini e creazione di n task a seconda del peso totale delle immagini
 # NB. questa rotta viene raggiunta quando viene eseguito il submit del form presente alla pagina upload_img.html;
 # ogni volta che viene fatto un submit viene incrementato il numero di task (niente a che fare con cvat, in qeusto caso è
@@ -265,7 +274,15 @@ def uploader(id):
     this_name_task = request.form['name-task']
     files = request.files.getlist('fileList')
     this_uuid = request.form.get('uuid')
-    totalSize = CVATapi.get_files(files, this_uuid)
+    regex = session['regex'+this_uuid]
+    regex_files = []
+    for file in files:
+        if file.filename in regex:
+            print(file)
+            regex_files.append(file)
+    session.pop('regex'+this_uuid)
+    """
+    totalSize = CVATapi.get_files(regex_files, this_uuid)
     global task
     task += 1
     this_request = {
@@ -277,7 +294,7 @@ def uploader(id):
     global requests
     requests.append(this_request)
     print("add task {!r}".format(task))
-    work_queue.put(task)
+    work_queue.put(task)"""
     return redirect(url_for('project', id=id))
 
 # ELIMINAZIONE di un task
@@ -354,7 +371,9 @@ def delete_prediction(id):
 def compare(id):
     comparisons = comparedb.get_comparisons(id)
     predictions = dbquery.get_predList(id)
-    return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons)
+    truth = dbquery.get_truth_mve(id)
+
+    return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons, truth=truth)
 
 # Visualizza predizione
 @app.route("/view_prediction/<id>",  methods=['POST', 'GET'])
@@ -365,6 +384,17 @@ def view_prediction(id):
         comparedb.view_prediction(id, pred)
 
     return redirect(url_for('compare', id=id))
+
+# Visualizza verita
+@app.route("/view_truth/<id>",  methods=['POST', 'GET'])
+def view_truth(id):
+    if request.method == "POST":
+        truth = request.form['select-truth']
+
+        comparedb.view_truth(id, truth)
+
+    return redirect(url_for('compare', id=id))
+
 
 # Confronto predizioni 
 @app.route("/compare_predictions/<id>",  methods=['POST', 'GET'])
@@ -399,7 +429,6 @@ def delete_compare(id):
 def compare_existing(id):
     pred1 = request.args.get('pred1')
     tab = request.args.get('pred2')
-    print(tab)
     if (tab == "/"):
         comparedb.view_prediction(id, pred1)
     elif (tab == "Truth"):

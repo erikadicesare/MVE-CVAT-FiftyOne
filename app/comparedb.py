@@ -291,10 +291,14 @@ def compare_pred_truth(id, pred):
             
     foIntegration.launch_app(dataset)
 
+def view_truth():
+    print("ff")
+
+
+# funzione usata per avere una lista di confronti fatti in passato (per uno specifico progetto mve)
 def get_comparisons(idMVE):
 
     predictions = dbquery.get_predList_ids(idMVE)
-    print(predictions)
 
     root='datasets'
     dirlist = [ item for item in os.listdir(root) if os.path.isdir(os.path.join(root, item)) ]

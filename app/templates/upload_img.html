@@ -2,6 +2,9 @@
 
 {% block header %}
   {% block title %}Caricamento immagini{% endblock %}
+  {% block link %}
+  <link rel="stylesheet" href="../static/css/upload_img.css">
+  {% endblock %}
 {% endblock %}
 
 {% block navbar %}Caricamento immagini{% endblock %}
@@ -23,8 +26,12 @@
                   <label class="form-label">Nome Task</label>
                   <input type="text" class="form-control" id="name-task" name="name-task" required>
                 </div>
+                <div class="mb-3">
+                  <label class="form-label">Filtro</label>
+                  <input type="text" class="form-control" id="filter-regex" name="filter-regex">
+                </div>
                 <div class="picker"><input type="file" class="form-control" id="picker" name="fileList" webkitdirectory directory multiple required/></div>
-                <input type="hidden" name="uuid" >
+                <input type="hidden" name="uuid">
                 <br/>
                 <input id="submit-btn" type="submit" value="Process Files" onclick="loading();"class="btn btn-primary"/><br/>
             </form>
@@ -36,12 +43,105 @@
       </div>
     </div>
   </div>
-</div>      
+</div>  
+<div class="container testimonial-group">
+<div id="gallery" class="row gallery">
+  <!--
+  <div class="column">
+    <img src="img_nature.jpg" alt="Nature" onclick="myFunction(this);">
+  </div>
+  <div class="column">
+    <img src="img_snow.jpg" alt="Snow" onclick="myFunction(this);">
+  </div>
+  <div class="column">
+    <img src="img_mountains.jpg" alt="Mountains" onclick="myFunction(this);">
+  </div>
+  <div class="column">
+    <img src="img_lights.jpg" alt="Lights" onclick="myFunction(this);">
+  </div>
+  -->
+</div>
+</div>
+
 
 <script src='../static/js/main.js' type="text/javascript" ></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
 <script>
-  const filler = document.getElementById("loading");  
+
+  var uuid = Math.random().toString().replace("0.", "")
+  $('input[type=hidden]').val(uuid)
+  let picker = document.getElementById('picker');
+  let array_files;
+  
+  picker.addEventListener('change', e => {
+    array_files = Array.from(e.target.files);
+    preview_images(array_files);   
+  });
+  
+  const input_regex = document.getElementById('filter-regex');
+
+  input_regex.addEventListener('change', (event) => {
+    preview_images(array_files);
+  });
+
+  function preview_images(array) {
+
+    let files = [];
+    let file_regex = [];
+    const reg_input = document.getElementById("filter-regex").value;
+    var reg = new RegExp(reg_input);
+    var count = 0;
+
+    if (document.getElementById('gallery')!==null) {
+      document.getElementById('gallery').replaceChildren();
+    }
+
+    for (let file of array) {
+        files.push(file.name);
+    };
+
+    for (var i = 0; i < files.length; i++) {
+        if (reg.test(files[i])) {
+            file_regex.push(files[i]);
+        }
+    }
+    
+    const data = { data: file_regex, uuid: uuid };
+    $.ajax({
+        url: '{{url_for("get_regex_file")}}',
+        type: 'POST',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        contentType:"application/json; charset=UTF-8"
+    })
+
+    if (typeof array_files !== 'undefined') {
+
+      for (var i = 0; i < array_files.length; i++) {
+        
+        if (count == 10) break;
+
+        if (file_regex.includes(String(array_files[i].name)) == true) {
+        
+          count++;
+
+          var reader = new FileReader();
+
+          reader.onload = function(event) {
+            $( "#gallery" ).append('<div class="col-2" id="img'+String(i)+'"><img src="'+event.target.result+'" width="130" height="100"  alt="Snow" onclick="myFunction(this);"></div>');
+            /*
+            $($.parseHTML('<div>')).attr('class','column').attr('id', 'img'+String(i)).appendTo('div.gallery');
+              $($.parseHTML('<img>')).attr('src', event.target.result).attr('width', 130).attr('height', 100).appendTo('#img'+String(i));*/
+          }
+
+          reader.readAsDataURL(array_files[i]);
+          
+        }
+      }
+    }
+  }
+
+const filler = document.getElementById("loading");  
   function loading() {
     //use on form
     if ($('form')[0].checkValidity()) {
@@ -51,18 +151,22 @@
         filler.style.display = "none";
       }
     }
-  } 
     
-  var uuid = Math.random().toString().replace("0.", "")
-  $('input[type=hidden]').val(uuid)
-  let picker = document.getElementById('picker');
-  let files = []
-  
-  picker.addEventListener('change', e => {
-    for (let file of Array.from(e.target.files)) {
-        files.push(file.webkitRelativePath);
-    };
-  });
+  } 
 
+  function myFunction(imgs) {
+  // Get the expanded image
+  var expandImg = document.getElementById("expandedImg");
+  // Get the image text
+  var imgText = document.getElementById("imgtext");
+  // Use the same src in the expanded image as the image being clicked on from the grid
+  expandImg.src = imgs.src;
+  // Use the value of the alt attribute of the clickable image as text inside the expanded image
+  imgText.innerHTML = imgs.alt;
+  // Show the container element (hidden with CSS)
+  expandImg.parentElement.style.display = "block";
+}
+
+      
 </script>
 {% endblock %}

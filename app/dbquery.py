@@ -246,6 +246,19 @@ def insert_truth_values(idTruth, propName, valReal, valStr):
     mycursor.close()
     mydb.close()
 
+# ottento le righe dalla tabella Truth con un determinato IdProjectMVE
+def get_truth_mve(idMVE):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT * FROM Truth WHERE IdProjectMVE=%s", (idMVE,))
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return results
+
 # ottento i samples Id dalla tabella Truth
 def get_sampleIds_truth():
     mydb = mysql.connector.connect(**params)

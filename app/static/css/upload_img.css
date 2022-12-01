@@ -1,0 +1,33 @@
+/* The grid: Four equal columns that floats next to each other */
+.column-gallery {
+  float: left;
+  width: 25%;
+  padding: 10px;
+}
+
+/* Style the images inside the grid */
+.column-gallery img {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.column-gallery img:hover {
+  opacity: 1;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+/* The heart of the matter */
+.testimonial-group > .row {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .testimonial-group > .row > .col-2 {
+    display: inline-block;
+  }
+  
