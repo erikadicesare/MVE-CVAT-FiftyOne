@@ -155,3 +155,6 @@ def read_file(file, idMVE):
 
     return redirect(url_for('index'))
 
+def download_pred(idMVE, pred):
+    
+    print(pred)

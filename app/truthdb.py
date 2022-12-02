@@ -39,36 +39,36 @@ def read_file(file, idMVE):
     # create_row_truth_valus passandogli l'id del progetto MVE, il dataframe con i dati estratti
     # dal file csv/xls, l'indice i corrente (riga corrente), 'Name'/'Nome'/'name'/'nome', e la
     # lista con i nomi delle colonne
-    duplicates = []
+    updated = []
     if 'Name' in columns:
         for i in range(len(data['Name'])):
             insert = create_row_truth_values(idMVE, data, i, 'Name', columns)
             if insert is not None:
-                duplicates.append(insert)
+                updated.append(insert)
     elif 'Nome' in columns:
         for i in range(len(data['Nome'])):
             insert = create_row_truth_values(idMVE, data, i, 'Nome', columns)
             if insert is not None:
-                duplicates.append(insert)
+                updated.append(insert)
     elif 'name' in columns:
         for i in range(len(data['name'])):
             insert = create_row_truth_values(idMVE, data, i, 'name', columns)
             if insert is not None:
-                duplicates.append(insert)
+                updated.append(insert)
     elif 'nome' in columns:
         for i in range(len(data['nome'])):
             insert = create_row_truth_values(idMVE, data, i, 'nome', columns) 
             if insert is not None:
-                duplicates.append(insert)
+                updated.append(insert)
     else:
         for i in range(len(data.iloc[:, 0])):
             insert = create_row_truth_values(idMVE, data, i, data.columns[0], columns)
             if insert is not None:
-                duplicates.append(insert)
+                updated.append(insert)
 
     shutil.rmtree('tempTruth{}'.format(uuid))
     
-    return duplicates
+    return updated
 
 # creo tre oggetti: uno con i nomi delle proprieta, uno con i valori numerici delle proprieta e
 # uno con i valori stringa delle proprieta 
@@ -78,10 +78,17 @@ def read_file(file, idMVE):
 def create_row_truth_values(idMVE, data, i, col, columns):
 
     # Controllo se esiste gia una verita con il nome corrente dello specifico progetto mve
+    # in caso affermativo prendo la riga del db corrispondente e la elimino, in modo da inserire quella nuova
     sampleNames = dbquery.get_sampleNames_truth_MVE(idMVE)
-    if data[col][i] in sampleNames:
-        return i
-
+    for sampleName in sampleNames:
+        print(i, data[col][i], sampleName)
+        if data[col][i] == sampleName:
+            dbquery.delete_truth(data[col][i])
+            updated = i
+            break
+        else:
+            updated = None
+    
     idTruth = dbquery.insert_truth(idMVE, data[col][i]) 
     
     propsName = []
@@ -100,6 +107,8 @@ def create_row_truth_values(idMVE, data, i, col, columns):
     if (len(propsName) == len(valuesReal) and len(valuesReal) == len(valuesString)):
         for propName, valueReal, valueString in zip(propsName, valuesReal, valuesString):
             dbquery.insert_truth_values(idTruth, propName, valueReal, valueString)
-    
-    return None
 
+    return updated
+
+def download_truth(idMVE):
+    print()

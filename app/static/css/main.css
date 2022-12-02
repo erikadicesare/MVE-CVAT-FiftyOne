@@ -85,3 +85,8 @@ p {
     overflow-y: auto;
     max-height: 300px;
 }
+
+.dropdown-menu > li > a:hover {
+    background-image: none;
+    background-color: #b3cdf5
+}

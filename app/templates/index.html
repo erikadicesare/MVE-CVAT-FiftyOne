@@ -39,10 +39,60 @@
                                         <div id="collapseOne" class="collapse in notshow" aria-labelledby="headingOne">
                                             <div class="card-body">
                                               <div>
+                                                
                                                 <a class="btn btn-primary" href="{{ url_for('new_projectCVAT', id_prj_MVE=projectMVE[0], name_prj_MVE=projectMVE[1]) }}" role="button">Nuovo progetto CVAT</a>                                                
-                                                <a class="btn btn-primary" href="{{ url_for('upload_truth', id=projectMVE[0]) }}" role="button">Carica verità</a>
-                                                <a class="btn btn-primary" href="{{ url_for('upload_prediction', id=projectMVE[0]) }}" role="button">Carica predizioni</a>
-                                                <a class="btn btn-outline-primary float-end" href="{{ url_for('compare', id=projectMVE[0]) }}" role="button">Confronta</a>
+                                                <!--<a class="btn btn-primary" href="{{ url_for('upload_truth', id=projectMVE[0]) }}" role="button">Carica verità</a>
+                                                <a class="btn btn-primary" href="{{ url_for('upload_prediction', id=projectMVE[0]) }}" role="button">Carica predizioni</a> 
+                                                <a class="btn btn-outline-primary float-end" href="{{ url_for('compare', id=projectMVE[0]) }}" role="button">Confronta</a>-->
+                                                
+                                                <button class="btn btn-primary dropdown-toggle float-end" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Azioni
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                                    <li><a class="dropdown-item" href="{{ url_for('upload_truth', id=projectMVE[0]) }}">Carica verità</a></li>
+                                                    <li><a class="dropdown-item" href="{{ url_for('download_truth', id=projectMVE[0]) }}">Scarica verità</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item" href="{{ url_for('upload_prediction', id=projectMVE[0]) }}">Carica predizioni</a></li>
+                                                    <li><a class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal{{projectMVE[0]}}">Scarica predizioni</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item" href="{{ url_for('compare', id=projectMVE[0]) }}">Confronta</a></li>
+                                                </ul>
+
+                                                <!-- Modal -->
+                                                <div class="modal fade" id="exampleModal{{projectMVE[0]}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                        <h5 class="modal-title" id="exampleModalLabel{{projectMVE[0]}}">Seleziona predizione</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="tab-pane fade show active" id="pills-pred" role="tabpanel" aria-labelledby="pills-pred-tab">
+                                                                <form  action ="{{ url_for('download_pred', id=projectMVE[0]) }}"method = "POST" enctype="multipart/form-data">
+                                                                  <div class="row justify-content-center">
+                                                                    <select class="form-select select-drop-compare" id="select-prediction" name="select-prediction" aria-label="Default select example">
+                                                                      {% for pred in predictions %}
+                                                                        {% if pred['IdProjectMVE'] == projectMVE[0]%}
+                                                                        <option value="{{pred['IdPrediction']}}">{{pred['IdPrediction']}}, {{pred['Name']}}</option>  
+                                                                        {% endif %}
+                                                                      {% endfor %}
+                                                                      
+                                                                    </select>
+                                                                  </div>
+                                                                  <br/>
+                                                                  <div class="row justify-content-center">
+                                                                    <div class="col-4 text-center">
+                                                                      <input id="submit-pred" type="submit" value="Scarica" class="btn btn-primary"/><br/>
+                                                                    </div>
+                                                                  </div>
+                                                                </form>
+                                                              </div>
+                                                        </div>
+                                                    </div>
+                                                    </div>
+                                                </div>
+
+
                                               </div>
                                               <div>
                                                 {% for pCVAT in projectsCVAT %}

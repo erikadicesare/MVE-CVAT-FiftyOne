@@ -332,6 +332,20 @@ def get_id_from_name_truth(name):
     else:
         return id[0]
 
+# cancello la riga in Truth corrispondente ad un dato nome
+def delete_truth(name):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    
+    mycursor.execute("DELETE FROM Truth WHERE Name=%s", (name,))
+    
+    mydb.commit()
+
+    mycursor.close()
+    mydb.close()
+
+    #return myresult
+
 # mi segno le tabelle che hanno nel nome la stirnga "Prediction" (per fare il count in predictdb)
 def count_table():
     mydb = mysql.connector.connect(**params)
@@ -439,7 +453,7 @@ def insert_pred_list(idPred, name, idMVE):
     return ItemID
 
 # Prendo le righe della tabella PredList che hanno un determinato progetto mve associato
-def get_predList(idMVE):
+def get_predList_by_id(idMVE):
     mydb = mysql.connector.connect(**params)
 
     mycursor = mydb.cursor()
@@ -465,6 +479,32 @@ def get_predList(idMVE):
 
     return predictions
 
+# Prendo le righe della tabella PredList
+def get_predList(idMVE):
+    mydb = mysql.connector.connect(**params)
+
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT * FROM PredList")
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    predictions = []
+
+    for res in results:
+        countRows = count_rows_table(res[1])
+        pred = {
+            'id': res[0],
+            'IdPrediction': res[1],
+            'Name': res[2],
+            'IdProjectMVE': res[3],
+            'rows': countRows
+        }
+        predictions.append(pred)
+    #get_n_rows_for_prediction(2)
+
+    return predictions
 
 # Prendo gli id della tabella PredList che hanno un determinato progetto mve associato
 def get_predList_ids(idMVE):

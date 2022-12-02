@@ -44,8 +44,9 @@ def index():
     # prendo tutti i progetti MVE e CVAT
     projectsMVE = dbquery.get_projectsMVE()
     projectsCVAT =  dbquery.get_projectMVExProjectCVAT() 
+    predictions = dbquery.get_predList(id)
 
-    return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT)
+    return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, predictions=predictions)
 
 ## GESTIONE PROGETTI MVE ##
 #####################################################################################################
@@ -75,7 +76,7 @@ def edit_projectMVE(id):
     if (data == []):
         return make_response(render_template("404.html", info="Il progetto {} non esiste".format(id)), 404)
     
-    predictions = dbquery.get_predList(id)
+    predictions = dbquery.get_predList_by_id(id)
     
     return render_template('edit_projectMVE.html', id=id, data=data, predictions=predictions)
 
@@ -305,7 +306,7 @@ def delete_task(id):
 
     return redirect(url_for('project', id=prj_id))
 
-## CARICAMENTO VERITA ## 
+## VERITA ## 
 #####################################################################################################
 
 # NB l'id che passo come parametro è l'id del progetto MVE scelto
@@ -328,6 +329,13 @@ def uploader_truth(id):
     session['duplicates'] = resp
     
     return redirect(url_for('upload_truth', id=id))
+
+# SCARICAMENTO verita
+@app.route('/download_truth/<id>')
+def download_truth(id):
+    truthdb.download_truth(id)
+    
+    return redirect(url_for('index'))
 
 ## PREDIZIONI ## 
 #####################################################################################################
@@ -360,6 +368,14 @@ def delete_prediction(id):
 
     return redirect(url_for('edit_projectMVE', id=prj_id))
 
+# SCARICAMENTO predizione
+@app.route('/download_pred/<id>', methods=['POST', 'GET'])
+def download_pred(id):
+    if request.method == "POST":
+        pred = request.form['select-prediction']
+        predictdb.download_pred(id, pred)
+
+    return redirect(url_for('index'))
 
 ## CONFRONTO PREDIZIONI/VERITA  ##
 #####################################################################################################
@@ -368,7 +384,7 @@ def delete_prediction(id):
 @app.route("/compare/<id>")
 def compare(id):
     comparisons = comparedb.get_comparisons(id)
-    predictions = dbquery.get_predList(id)
+    predictions = dbquery.get_predList_by_id(id)
     truth = dbquery.get_truth_mve(id)
 
     return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons, truth=truth)
