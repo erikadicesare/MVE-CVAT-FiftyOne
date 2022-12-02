@@ -258,7 +258,6 @@ def upload(id):
 def get_regex_file():
     if request.method == "POST":
         data = request.get_json()
-        print(data)
     
     session['regex'+data['uuid']] = data['data']
 
@@ -278,10 +277,9 @@ def uploader(id):
     regex_files = []
     for file in files:
         if file.filename in regex:
-            print(file)
             regex_files.append(file)
     session.pop('regex'+this_uuid)
-    """
+
     totalSize = CVATapi.get_files(regex_files, this_uuid)
     global task
     task += 1
@@ -294,7 +292,7 @@ def uploader(id):
     global requests
     requests.append(this_request)
     print("add task {!r}".format(task))
-    work_queue.put(task)"""
+    work_queue.put(task)
     return redirect(url_for('project', id=id))
 
 # ELIMINAZIONE di un task
@@ -384,17 +382,6 @@ def view_prediction(id):
         comparedb.view_prediction(id, pred)
 
     return redirect(url_for('compare', id=id))
-
-# Visualizza verita
-@app.route("/view_truth/<id>",  methods=['POST', 'GET'])
-def view_truth(id):
-    if request.method == "POST":
-        truth = request.form['select-truth']
-
-        comparedb.view_truth(id, truth)
-
-    return redirect(url_for('compare', id=id))
-
 
 # Confronto predizioni 
 @app.route("/compare_predictions/<id>",  methods=['POST', 'GET'])

@@ -25,9 +25,6 @@
                         <button class="nav-link active" id="pills-pred-tab" data-bs-toggle="pill" data-bs-target="#pills-pred" type="button" role="tab" aria-controls="pills-pred" aria-selected="true">Predizione</button>
                       </li>
                       <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="pills-truth-tab" data-bs-toggle="pill" data-bs-target="#pills-truth" type="button" role="tab" aria-controls="pills-truth" aria-selected="false">Verità</button>
-                      </li>
-                      <li class="nav-item" role="presentation">
                         <button class="nav-link" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="false">Predizione vs Predizione</button>
                       </li>
                       <li class="nav-item" role="presentation">
@@ -50,23 +47,6 @@
                           <div class="row justify-content-center">
                             <div class="col-4 text-center">
                               <input id="submit-pred" type="submit" value="Confronta" onclick="loading();" class="btn btn-primary"/><br/>
-                            </div>
-                          </div>
-                        </form>
-                      </div>
-                      <div class="tab-pane fade" id="pills-truth" role="tabpanel" aria-labelledby="pills-truth-tab">
-                        <form  action ="{{ url_for('view_truth', id=id) }}"method = "POST" enctype="multipart/form-data">
-                          <div class="row justify-content-center">
-                            <select class="form-select select-drop-compare" id="select-truth" name="select-truth" aria-label="Default select example">
-                              {% for tr in truth %}
-                                <option value="{{tr[0]}}">{{tr[0]}}, {{tr[2]}}</option>  
-                              {% endfor %}
-                            </select>
-                          </div>
-                          <br/>
-                          <div class="row justify-content-center">
-                            <div class="col-4 text-center">
-                              <input id="submit-truth" type="submit" value="Confronta" onclick="loading();" class="btn btn-primary"/><br/>
                             </div>
                           </div>
                         </form>

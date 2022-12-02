@@ -44,23 +44,15 @@
     </div>
   </div>
 </div>  
+<br/>
 <div class="container testimonial-group">
-<div id="gallery" class="row gallery">
-  <!--
-  <div class="column">
-    <img src="img_nature.jpg" alt="Nature" onclick="myFunction(this);">
+  <div id="gallery" class="row gallery">
+    <!-- Append delle immagini -->
   </div>
-  <div class="column">
-    <img src="img_snow.jpg" alt="Snow" onclick="myFunction(this);">
-  </div>
-  <div class="column">
-    <img src="img_mountains.jpg" alt="Mountains" onclick="myFunction(this);">
-  </div>
-  <div class="column">
-    <img src="img_lights.jpg" alt="Lights" onclick="myFunction(this);">
-  </div>
-  -->
 </div>
+<br/>
+<div class="alert alert-secondary" role="alert" id="info-regex" style="display:none; margin-left: 40px; margin-right: 40px">
+
 </div>
 
 
@@ -87,26 +79,33 @@
   function preview_images(array) {
 
     let files = [];
-    let file_regex = [];
+    let files_regex_name = [];
+    let files_regex_path = [];
     const reg_input = document.getElementById("filter-regex").value;
     var reg = new RegExp(reg_input);
     var count = 0;
+    const gallery = document.getElementById("gallery");  
+    const info_regex = document.getElementById("info-regex");  
 
-    if (document.getElementById('gallery')!==null) {
-      document.getElementById('gallery').replaceChildren();
+    if (gallery!==null) {
+      gallery.replaceChildren();
     }
 
-    for (let file of array) {
-        files.push(file.name);
-    };
+    if (info_regex!==null) {
+      info_regex.replaceChildren();
+      info_regex.style.display === "none"
+    }
 
+    files = array;
+    
     for (var i = 0; i < files.length; i++) {
-        if (reg.test(files[i])) {
-            file_regex.push(files[i]);
+        if (reg.test(files[i].name) && checkExtension(files[i].name)) {
+            files_regex_name.push(files[i].name);
+            files_regex_path.push(files[i].webkitRelativePath);
         }
     }
     
-    const data = { data: file_regex, uuid: uuid };
+    const data = { data: files_regex_path, uuid: uuid };
     $.ajax({
         url: '{{url_for("get_regex_file")}}',
         type: 'POST',
@@ -114,34 +113,40 @@
         data: JSON.stringify(data),
         contentType:"application/json; charset=UTF-8"
     })
-
+    
     if (typeof array_files !== 'undefined') {
 
       for (var i = 0; i < array_files.length; i++) {
         
         if (count == 10) break;
 
-        if (file_regex.includes(String(array_files[i].name)) == true) {
-        
+        if (files_regex_name.includes(String(array_files[i].name)) == true) {
+
           count++;
-
-          var reader = new FileReader();
-
-          reader.onload = function(event) {
-            $( "#gallery" ).append('<div class="col-2" id="img'+String(i)+'"><img src="'+event.target.result+'" width="130" height="100"  alt="Snow" onclick="myFunction(this);"></div>');
-            /*
-            $($.parseHTML('<div>')).attr('class','column').attr('id', 'img'+String(i)).appendTo('div.gallery');
-              $($.parseHTML('<img>')).attr('src', event.target.result).attr('width', 130).attr('height', 100).appendTo('#img'+String(i));*/
-          }
-
-          reader.readAsDataURL(array_files[i]);
           
+          // create Blob-URL for File (=Blob) object
+          var url = (URL || webkit).createObjectURL(files[i]);
+          
+          $( "#gallery" ).append('<div class="images-gallery"><img src="'+url+'" width="130" height="100"></div>');
         }
       }
+      if (info_regex.style.display === "none") {
+        info_regex.style.display = "flex";
+      }
+      $( "#info-regex" ).append('Numero di immagini che soddisfano il filtro: '+files_regex_name.length+" su "+files.length)
     }
   }
 
-const filler = document.getElementById("loading");  
+  function checkExtension(filename) {
+    const ext = filename.split('.').pop();
+    ext.toLowerCase();
+    if (ext!='bmp' && ext!='png' && ext!='jpeg' && ext!='svg' && ext!='avif' && ext!='apng' && ext!='gif' && ext!='ico' && ext!='tiff') {
+      return false;
+    }
+    return true;
+  }
+
+  const filler = document.getElementById("loading");  
   function loading() {
     //use on form
     if ($('form')[0].checkValidity()) {
@@ -154,18 +159,18 @@ const filler = document.getElementById("loading");
     
   } 
 
-  function myFunction(imgs) {
-  // Get the expanded image
-  var expandImg = document.getElementById("expandedImg");
-  // Get the image text
-  var imgText = document.getElementById("imgtext");
-  // Use the same src in the expanded image as the image being clicked on from the grid
-  expandImg.src = imgs.src;
-  // Use the value of the alt attribute of the clickable image as text inside the expanded image
-  imgText.innerHTML = imgs.alt;
-  // Show the container element (hidden with CSS)
-  expandImg.parentElement.style.display = "block";
-}
+  function galleryImages(imgs) {
+    // Get the expanded image
+    var expandImg = document.getElementById("expandedImg");
+    // Get the image text
+    var imgText = document.getElementById("imgtext");
+    // Use the same src in the expanded image as the image being clicked on from the grid
+    expandImg.src = imgs.src;
+    // Use the value of the alt attribute of the clickable image as text inside the expanded image
+    imgText.innerHTML = imgs.alt;
+    // Show the container element (hidden with CSS)
+    expandImg.parentElement.style.display = "block";
+  }
 
       
 </script>

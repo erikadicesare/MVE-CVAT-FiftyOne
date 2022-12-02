@@ -23,11 +23,12 @@
 }
 /* The heart of the matter */
 .testimonial-group > .row {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  .testimonial-group > .row > .col-2 {
-    display: inline-block;
-  }
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.testimonial-group > .row > .images-gallery {
+  display: inline-block;  
+  width: 150px;
+}
   

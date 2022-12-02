@@ -9,6 +9,8 @@ from PIL import Image
 from app import dbquery
 import PIL  
 from dotenv import load_dotenv
+from time import sleep
+from cvat_sdk.api_client import Configuration, ApiClient, models, apis, exceptions
 
 load_dotenv()
 
@@ -121,67 +123,7 @@ def save_image_cover(fs, taskId):
     pathFirstFile = './app/static/data/projectCVAT/{}{}'.format(taskId, file_extension)
     picture = picture.save(pathFirstFile)
 
-"""
-def uploadImages(id, name_task, files, uuid):
 
-    keyLogin = generate_key_login()
-        
-    totalSize = get_files(files, uuid)
-        
-    taskId = create_empty_task(id, name_task, 1, keyLogin)
-
-    idMVE = dbquery.get_projectCVAT(id)[0]
-    
-    fs = []
-    size = 0 
-    countTask = 1
-
-    fs = select_images(uuid, idMVE, taskId)
-
-    upload_images(uuid, fs, keyLogin, taskId)
-
-    
-    for file in files:
-        headfp, tailfp = ntpath.split(file.filename)
-        
-        pathFile = 'temp{}/'.format(uuid) + tailfp
-        
-        size = size + Path(pathFile).stat().st_size
-        if (size<int(max_size_load_file)):
-            fs.append(pathFile)
-            check = dbquery.get_MVSxCVAT(tailfp, idMVE)
-            if check == 0: 
-                dbquery.insert_MVSxCVAT_row(tailfp, idMVE, taskId)
-        else:
-            images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
-            uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
-            
-            fs = [pathFile]
-            size = Path(pathFile).stat().st_size
-            if (size!=0):
-                countTask = countTask + 1
-                taskId = create_empty_task(id, name_task, str(countTask), keyLogin)
-                # controllo se esiste gia una immagine con lo stesso nome in cvat
-                check = dbquery.get_MVSxCVAT(tailfp, idMVE)
-                if check == 0: 
-                    dbquery.insert_MVSxCVAT_row(tailfp, idMVE, taskId)
-    if (size>0): 
-        images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
-        uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
-    
-    ############################################################################################################################################################################
-    
-    # Salvo il primo file dentro static/data/projectCVAT per avere una immagine significativa per progetto (immagine presa dall'ultimo task inserito)
-
-    picture = Image.open(fs[0])
-    file_name, file_extension = ntpath.splitext(fs[0])
-    pathFirstFile = './app/static/data/projectCVAT/{}{}'.format(taskId, file_extension)
-    picture = picture.save(pathFirstFile)
-
-    ############################################################################################################################################################################
-    
-    #shutil.rmtree('temp{}'.format(uuid))
-    """
 # creo un nuovo progetto inserendo solamente il nome
 def create_project(name_project):
 
@@ -333,3 +275,91 @@ def get_task_dataset(id, folderPath):
         zObject.extractall(path=folderPath)
     
     os.remove(folderPathzip)
+
+"""
+def prova():
+    configuration = Configuration(
+        host="http://192.168.1.92:8080",
+        username=username,
+        password=password,
+    )
+
+    # Enter a context with an instance of the API client
+    with ApiClient(configuration) as api_client:
+        # Parameters can be passed as a plain dict with JSON-serialized data
+        # or as model objects (from cvat_sdk.api_client.models), including
+        # mixed variants.
+        #
+        # In case of dicts, keys must be the same as members of models.I<ModelName>
+        # interfaces and values must be convertible to the corresponding member
+        # value types (e.g. a date or string enum value can be parsed from a string).
+        #
+        # In case of model objects, data must be of the corresponding
+        # models.<ModelName> types.
+        #
+        # Let's use a dict here. It should look like models.ITaskWriteRequest
+        task_spec = {
+            'name': 'example task',
+            "labels": [{
+                "name": "car",
+                "color": "#ff00ff",
+                "attributes": [
+                    {
+                        "name": "a",
+                        "mutable": True,
+                        "input_type": "number",
+                        "default_value": "5",
+                        "values": ["4", "5", "6"]
+                    }
+                ]
+            }],
+        }
+
+        try:
+            # Apis can be accessed as ApiClient class members
+            # We use different models for input and output data. For input data,
+            # models are typically called like "*Request". Output data models have
+            # no suffix.
+            (task, response) = api_client.tasks_api.create(task_spec)
+        except exceptions.ApiException as e:
+            # We can catch the basic exception type, or a derived type
+            print("Exception when trying to create a task: %s\n" % e)
+
+        fs = []
+
+        for filename in os.listdir('/home/musausr/images/cvat3'):
+           
+            fs.append('/home/musausr/images/cvat3/'+filename)
+   
+        images = [open(f, 'rb') for i, f in enumerate(fs)]
+        # Here we will use models instead of a dict
+        task_data = models.DataRequest(
+            image_quality=75,
+            client_files=images,
+        )
+        
+
+        # If we pass binary file objects, we need to specify content type.
+        # For this endpoint, we don't have response data
+        (_, response) = api_client.tasks_api.create_data(task.id,
+            data_request=task_data,
+            _content_type="multipart/form-data",
+
+            # we can choose to check the response status manually
+            # and disable the response data parsing
+            _check_status=False, _parse_response=False
+        )
+        assert response.status == 202, response.msg
+
+        # Wait till task data is processed
+        for _ in range(100):
+            (status, _) = api_client.tasks_api.retrieve_status(task.id)
+            if status.state.value in ['Finished', 'Failed']:
+                break
+            sleep(0.1)
+        assert status.state.value == 'Finished', status.message
+
+        # Update the task object and check the task size
+        (task, _) = api_client.tasks_api.retrieve(task.id)
+        assert task.size == 4
+"""

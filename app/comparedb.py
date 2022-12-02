@@ -291,10 +291,6 @@ def compare_pred_truth(id, pred):
             
     foIntegration.launch_app(dataset)
 
-def view_truth():
-    print("ff")
-
-
 # funzione usata per avere una lista di confronti fatti in passato (per uno specifico progetto mve)
 def get_comparisons(idMVE):
 
