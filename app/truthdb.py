@@ -78,18 +78,22 @@ def read_file(file, idMVE):
 def create_row_truth_values(idMVE, data, i, col, columns):
 
     # Controllo se esiste gia una verita con il nome corrente dello specifico progetto mve
-    # in caso affermativo prendo la riga del db corrispondente e la elimino, in modo da inserire quella nuova
-    sampleNames = dbquery.get_sampleNames_truth_MVE(idMVE)
-    for sampleName in sampleNames:
-        if data[col][i] == sampleName:
-            dbquery.delete_truth(data[col][i])
+    # in caso affermativo vado ad aggiornare le proprieta in truthValue (elimino quelle 
+    # esistenti e aggiungo quelli nuovi)
+    sampleIdNames = dbquery.get_sampleIdNames_truth_MVE(idMVE)
+    for sample in sampleIdNames:
+        if data[col][i] == sample['name']:
             updated = i
+            dbquery.delete_truth_value(sample['id'])
+            idTruth = sample['id']
             break
+
         else:
             updated = None
-    
-    idTruth = dbquery.insert_truth(idMVE, data[col][i]) 
-    
+
+    if updated is None:
+        idTruth = dbquery.insert_truth(idMVE, data[col][i]) 
+            
     propsName = []
     valuesReal = []
     valuesString = []
@@ -103,9 +107,6 @@ def create_row_truth_values(idMVE, data, i, col, columns):
                 else:
                     valuesReal.append(None)
                 valuesString.append(str(data[column][i]))
-    print(propsName)
-    print(valuesReal)
-    print(valuesString)
     if (len(propsName) == len(valuesReal) and len(valuesReal) == len(valuesString)):
         for propName, valueReal, valueString in zip(propsName, valuesReal, valuesString):
             dbquery.insert_truth_values(idTruth, propName, valueReal, valueString)

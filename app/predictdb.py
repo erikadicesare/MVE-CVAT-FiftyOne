@@ -177,3 +177,7 @@ def download_pred(idMVE, pred):
     namefile = "download/pred/"+pred+".csv"
     df.to_csv(namefile, index=False, header=True)
     return namefile
+
+def check_if_empty(idMVE):
+    prediction_list = dbquery.get_predList_ids(idMVE)
+    print(prediction_list)

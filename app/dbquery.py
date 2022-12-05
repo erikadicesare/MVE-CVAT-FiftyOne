@@ -246,6 +246,47 @@ def insert_truth_values(idTruth, propName, valReal, valStr):
     mycursor.close()
     mydb.close()
 
+
+# prendo i valori corrispondenti ad un certo idSample dalla tabella TruthValues
+def get_truth_values(idSample):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT * FROM TruthValues WHERE IdTruth=%s", (idSample,))
+
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return results
+
+# prendo le proprieta corrispondenti ad un certo idSample dalla tabella TruthValues
+def get_truth_prop_names(idSample):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT PropName FROM TruthValues WHERE IdTruth=%s", (idSample,))
+
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return results
+
+# elimino le righe con le proprieta corrispondenti ad un determinato idSample
+def delete_truth_value(idSample):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+    
+    mycursor.execute("DELETE FROM TruthValues WHERE idTruth=%s", (idSample,))
+
+    mydb.commit()
+
+    mycursor.close()
+    mydb.close()
+
 # ottento le righe dalla tabella Truth con un determinato IdProjectMVE
 def get_truth_mve(idMVE):
     mydb = mysql.connector.connect(**params)
@@ -297,24 +338,27 @@ def get_sampleNames_truth():
 
     return names
 
-# ottento i samples name dalla tabella Truth di uno specifico progetto mve
-def get_sampleNames_truth_MVE(idMVE):
+# ottento i samples name e id dalla tabella Truth di uno specifico progetto mve
+def get_sampleIdNames_truth_MVE(idMVE):
     mydb = mysql.connector.connect(**params)
 
     mycursor = mydb.cursor()
-    mycursor.execute("SELECT Name FROM Truth WHERE IdProjectMVE=%s", (idMVE,))
-    sampleNames = mycursor.fetchall()
+    mycursor.execute("SELECT IdSample, Name FROM Truth WHERE IdProjectMVE=%s", (idMVE,))
+    samples = mycursor.fetchall()
 
     mycursor.close()
     mydb.close()
 
-    names = []
-    if (len(sampleNames) != 0):
+    samplesIdName = []
+    if (len(samples) != 0):
 
-        for sName in sampleNames:
-            names.append(sName[0])
+        for sample in samples:
+            samplesIdName.append({
+                'id': sample[0],
+                'name': sample[1]
+            })
 
-    return names
+    return samplesIdName
 
 # ottento i samples name dalla tabella Truth
 def get_id_from_name_truth(name):
@@ -707,30 +751,3 @@ def get_prediction_columns(table_name):
 
     return columns
 
-# prendo i valori corrispondenti ad un certo idSample dalla tabella TruthValues
-def get_truth_values(idSample):
-    mydb = mysql.connector.connect(**params)
-    mycursor = mydb.cursor()
-
-    mycursor.execute("SELECT * FROM TruthValues WHERE IdTruth=%s", (idSample,))
-
-    results = mycursor.fetchall()
-
-    mycursor.close()
-    mydb.close()
-
-    return results
-
-# prendo i valori corrispondenti ad un certo idSample dalla tabella TruthValues
-def get_truth_prop_names(idSample):
-    mydb = mysql.connector.connect(**params)
-    mycursor = mydb.cursor()
-
-    mycursor.execute("SELECT PropName FROM TruthValues WHERE IdTruth=%s", (idSample,))
-
-    results = mycursor.fetchall()
-
-    mycursor.close()
-    mydb.close()
-
-    return results
