@@ -81,7 +81,6 @@ def create_row_truth_values(idMVE, data, i, col, columns):
     # in caso affermativo prendo la riga del db corrispondente e la elimino, in modo da inserire quella nuova
     sampleNames = dbquery.get_sampleNames_truth_MVE(idMVE)
     for sampleName in sampleNames:
-        print(i, data[col][i], sampleName)
         if data[col][i] == sampleName:
             dbquery.delete_truth(data[col][i])
             updated = i
@@ -97,17 +96,16 @@ def create_row_truth_values(idMVE, data, i, col, columns):
 
     for column in columns:
         if (column != col): 
-            propsName.append(column)
-            if (pd.isnull(data[column][i]) == True):
-                valuesReal.append(None)
-                valuesString.append(None)
-            elif ((isinstance(data[column][i], float)) or (isinstance(data[column][i], int))):
-                valuesReal.append(data[column][i])
+            if (pd.isnull(data[column][i]) != True):
+                propsName.append(column)
+                if ((isinstance(data[column][i], float)) or (isinstance(data[column][i], int))):
+                    valuesReal.append(data[column][i])
+                else:
+                    valuesReal.append(None)
                 valuesString.append(str(data[column][i]))
-            else:
-                valuesReal.append(None)
-                valuesString.append(str(data[column][i]))
-    
+    print(propsName)
+    print(valuesReal)
+    print(valuesString)
     if (len(propsName) == len(valuesReal) and len(valuesReal) == len(valuesString)):
         for propName, valueReal, valueString in zip(propsName, valuesReal, valuesString):
             dbquery.insert_truth_values(idTruth, propName, valueReal, valueString)

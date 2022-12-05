@@ -200,7 +200,6 @@ def worker(queue):
         
         for request in requests:
             if (request['task']==task):
-                print(request)
                 uuid = request['uuid']
                 name_task = request['name_task']
                 id = request['id_prjCVAT']
@@ -247,7 +246,6 @@ task = 0
 # CARICAMENTO immagini
 @app.route('/upload/<id>')
 def upload(id):
-    print(requests)
     # controllo che il progetto sia esistente
     project = dbquery.get_projectCVAT(id)
     if (project == []):
