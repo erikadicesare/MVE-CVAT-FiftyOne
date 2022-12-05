@@ -720,3 +720,17 @@ def get_truth_values(idSample):
     mydb.close()
 
     return results
+
+# prendo i valori corrispondenti ad un certo idSample dalla tabella TruthValues
+def get_truth_prop_names(idSample):
+    mydb = mysql.connector.connect(**params)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT PropName FROM TruthValues WHERE IdTruth=%s", (idSample,))
+
+    results = mycursor.fetchall()
+
+    mycursor.close()
+    mydb.close()
+
+    return results

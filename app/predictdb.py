@@ -156,5 +156,24 @@ def read_file(file, idMVE):
     return redirect(url_for('index'))
 
 def download_pred(idMVE, pred):
-    
-    print(pred)
+    # cancello i file che sono stati scaricati in precedenza
+    for filename in os.listdir('download/pred'):
+        os.remove("download/pred/"+filename)
+
+    # prendo i nomi delle colonne della tabella selezionata dall'utente 
+    # e cambio la colonna con nome 'idMVS' con 'ObjKey' 
+    dbcolumns = dbquery.get_prediction_columns(pred)
+    columns = []
+    for col in dbcolumns:
+        if col[0] == 'idMVS':
+            columns.append('ObjKey')
+        else:
+            columns.append(col[0])
+
+    # prendo le righe della tabella selezionata 
+    table = dbquery.get_prediction(pred)
+    # creo il dataframe che poi converto in csv
+    df = pd.DataFrame(table, columns=columns)
+    namefile = "download/pred/"+pred+".csv"
+    df.to_csv(namefile, index=False, header=True)
+    return namefile

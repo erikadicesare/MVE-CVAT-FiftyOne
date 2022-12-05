@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 import time
-from flask import render_template,request, jsonify, redirect, session, url_for, make_response
+from flask import render_template,request, jsonify, redirect, send_file, session, url_for, make_response
 from app import app, CVATapi, comparedb, dbquery, truthdb, predictdb
 from dotenv import load_dotenv
 from queue import Queue
@@ -331,11 +331,11 @@ def uploader_truth(id):
     return redirect(url_for('upload_truth', id=id))
 
 # SCARICAMENTO verita
-@app.route('/download_truth/<id>')
+@app.route('/download_truth/<id>', methods=['POST', 'GET'])
 def download_truth(id):
     truthdb.download_truth(id)
-    
-    return redirect(url_for('index'))
+    namefile = truthdb.download_truth(id)
+    return send_file("../"+namefile, as_attachment=True)
 
 ## PREDIZIONI ## 
 #####################################################################################################
@@ -373,8 +373,8 @@ def delete_prediction(id):
 def download_pred(id):
     if request.method == "POST":
         pred = request.form['select-prediction']
-        predictdb.download_pred(id, pred)
-
+        namefile = predictdb.download_pred(id, pred)
+        return send_file("../"+namefile, as_attachment=True)
     return redirect(url_for('index'))
 
 ## CONFRONTO PREDIZIONI/VERITA  ##

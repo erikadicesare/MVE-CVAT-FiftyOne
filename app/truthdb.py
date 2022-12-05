@@ -98,11 +98,15 @@ def create_row_truth_values(idMVE, data, i, col, columns):
     for column in columns:
         if (column != col): 
             propsName.append(column)
-            if ((isinstance(data[column][i], float)) or (isinstance(data[column][i], int))):
+            if (pd.isnull(data[column][i]) == True):
+                valuesReal.append(None)
+                valuesString.append(None)
+            elif ((isinstance(data[column][i], float)) or (isinstance(data[column][i], int))):
                 valuesReal.append(data[column][i])
+                valuesString.append(str(data[column][i]))
             else:
                 valuesReal.append(None)
-            valuesString.append(str(data[column][i]))
+                valuesString.append(str(data[column][i]))
     
     if (len(propsName) == len(valuesReal) and len(valuesReal) == len(valuesString)):
         for propName, valueReal, valueString in zip(propsName, valuesReal, valuesString):
@@ -111,4 +115,49 @@ def create_row_truth_values(idMVE, data, i, col, columns):
     return updated
 
 def download_truth(idMVE):
-    print()
+    # cancello i file che sono stati scaricati in precedenza
+    for filename in os.listdir('download/truth'):
+        os.remove("download/truth/"+filename)
+
+    # prendo le righe della tabella Truth corrispondenti ad un determinato progetto MVE
+    # quindi ogni riga restituita da questa funzione avra un idSample, un idMVE e un nome
+    truth = dbquery.get_truth_mve(idMVE)
+
+    # per ogni riga restituita vado a prendere i nomi delle proprieta presenti nella 
+    # tabella TruthValues (che fanno riferimento allo stesso idSample/idTruth).
+    # creo una lista con tutti i nomi delle proprieta esistenti in quel progetto MVE
+    columns = ['Name']
+    for tr in truth:
+        values = dbquery.get_truth_prop_names(tr[0])
+        for val in values:
+            if val[0] not in columns:
+                columns.append(val[0])
+    
+    # per ogni riga restituita dalla query sulla tabella Truth, creo una lista row 
+    # inizializzata a None per ogni colonna presente nella lista columns. 
+    # poi per ogni riga presa dalla tabella TruthValues con idTruth=idSample corrente
+    # vado a prendere la posizione della colonna nella lista columns per poi andare a 
+    # cabiare il valore None nella lista row in quella posizione. controllo anche che 
+    # il valore in posizine 2 sia diverso da None: in caso affermativo cambio con quel
+    # valore, altrimenti con il valore in posizine 3 (pos 2 = valore reale, pos 3 = 
+    # valore stringa)  
+    rows = []
+    for tr in truth:
+        row = []
+        for col in columns:
+            row.append(None)
+        row[0] = tr[2]
+        values = dbquery.get_truth_values(tr[0])
+        for val in values:
+            if val[1] in columns:
+                index = columns.index(val[1])
+                if val[2] is not None:
+                    row[index] = val[2]
+                else:
+                    row[index] = val[3]
+        rows.append(row)
+    # creo il dataframe che poi converto in csv
+    df = pd.DataFrame(data=rows, columns=columns)
+    namefile = "download/truth/MVEproject"+idMVE+".csv"
+    df.to_csv(namefile, index=False, header=True)
+    return namefile

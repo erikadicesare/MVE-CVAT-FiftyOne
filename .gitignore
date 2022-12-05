@@ -1,4 +1,5 @@
 app/.env
 datasets
+download
 app/static/data/project-icon
 app/static/data/projectCVAT
