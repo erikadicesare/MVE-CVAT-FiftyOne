@@ -1,6 +1,4 @@
 import fiftyone as fo
-import mysql.connector
-from mysql.connector import errorcode
 import ntpath
 from app import dbquery
 

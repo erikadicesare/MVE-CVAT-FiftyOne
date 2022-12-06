@@ -1,8 +1,10 @@
 import os
+import re
 import shutil
 from app import dbquery, CVATapi, foIntegration
 import xml.etree.ElementTree as ET    
 import time
+from PIL import Image
 
 def view_prediction(id, pred):
     # prendo i nomi delle immagini che ho caricato su cvat
@@ -10,6 +12,7 @@ def view_prediction(id, pred):
 
     # prendo gli idMVS di una determinata predizione
     idsMVSpred = dbquery.get_prediction_ids(pred)
+    idsMVS = []
     tasks = []
     idsCVAT = []
 
@@ -18,13 +21,14 @@ def view_prediction(id, pred):
             for img in images:
                 if idMVSpred in img[0]:
                     idsCVAT.append(img[0])
+                    idsMVS.append(idMVSpred)
                     if img[2] not in tasks:
                         tasks.append(img[2])
 
     path = "datasets/{}".format(pred)
     revPath = "datasets/{}".format(pred)
    
-    get_data(path,revPath,tasks,idsCVAT,pred,"/")
+    get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, "/")
 
 def compare_predictions(id, pred1, pred2):
     
@@ -33,6 +37,7 @@ def compare_predictions(id, pred1, pred2):
     images = dbquery.get_MVSxCVAT_byMVE(id)
     idsMVSpred1 = dbquery.get_prediction_ids(pred1)
     idsMVSpred2 = dbquery.get_prediction_ids(pred2)
+    idsMVS = []
     tasks = []
     idsCVAT = []
     # mi salvo i task presenti in entrambe le prediction e gli idsCVAT delle immagini condivise da entrambe le prediction 
@@ -40,6 +45,7 @@ def compare_predictions(id, pred1, pred2):
         if idMVSpred1 in idsMVSpred2:
             for img in images:
                 if idMVSpred1 in img[0]:
+                    idsMVS.append(idMVSpred1)
                     idsCVAT.append(img[0])
                     if img[2] not in tasks:
                         tasks.append(img[2])
@@ -47,119 +53,160 @@ def compare_predictions(id, pred1, pred2):
     path = "datasets/{}x{}".format(pred1,pred2)
     revPath = "datasets/{}x{}".format(pred2,pred1)
     
-    get_data(path, revPath, tasks, idsCVAT, pred1, pred2)
+    get_data(path, revPath, tasks, idsCVAT, idsMVS, pred1, pred2)
 
-def get_data(path, revPath, tasks, idsCVAT, pred, predOrTruth):
+def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
 
-    # cartella in cui ci andranno le immagini interessate
-    imagesPath = path+"/dataset/images/"
-    imagesPathReverse = revPath+"/dataset/images/"
-    # controllo se la cartella esiste 
-    isExist = os.path.exists(imagesPath)
-    isExistReverse = os.path.exists(imagesPathReverse)
-    
-    # creo la cartella se non esiste e creo il dataset
-    if not isExist and not isExistReverse:
-        os.makedirs(imagesPath)
+    ########## SE IDSCVAT E' VUOTO MANDA UN MESSAGGIO 
+    if idsCVAT != []:
 
-        annotationPath = path+"/dataset/annotation.xml"
+        # cartella in cui ci andranno le immagini interessate
+        imagesPath = path+"/dataset/images/"
+        imagesPathReverse = revPath+"/dataset/images/"
+        # controllo se la cartella esiste 
+        isExist = os.path.exists(imagesPath)
+        isExistReverse = os.path.exists(imagesPathReverse)
         
-        # file aggiuntivo usato per scriverci se un dataset ha annotazioni o meno (in caso di confronto gia esistente si va a pescare questa informazine)
-        info = open(path+"/dataset/info.txt", "w")
-
-        # Preparo il nuovo file xml con le annotazioni delle sole immagini che mi interessano
-        rootDest = ET.Element("annotations")
-        
-        m1 = ET.Element("version")
-        m1.text = "1.1"
-        rootDest.append(m1)
-        
-        index = 0
-        hasAnnotations = 'False'
-
-        # per ogni task scarico in locale il dataset cvat corrispondente (immagini + file con annotazioni)
-        for task in tasks:
-            taskPath = path+"/task{}".format(task)
-            CVATapi.get_task_dataset(task, taskPath)
+        # creo la cartella se non esiste e creo il dataset
+        if not isExist and not isExistReverse:
+            os.makedirs(imagesPath)
             
-            # copio in un altra cartella le immagini che ci interessano 
-            for idCVAT in idsCVAT:
-                if os.path.exists(taskPath+"/images/"+idCVAT):
-                    
-                    shutil.copy(taskPath+"/images/"+idCVAT, imagesPath)
-            
-            # prendo il file delle annotazioni scaricato da cvat e lo esamino
-            annPath = taskPath+"/annotations.xml"
+            # file aggiuntivo usato per scriverci se un dataset ha annotazioni o meno (in caso di confronto gia esistente si va a pescare questa informazine)
+            info = open(path+"/dataset/info.txt", "w")
 
-            tree = ET.parse(annPath)
+            index = 0
+            hasAnnotations = 'False'
 
-            rootSource = tree.getroot()
-
-            # controlo i tag 'image' e se l'attributo 'name' e' tra gli idsCVAT salvati prima allora aggiungo un elemento al mio nuovo xml con le informazioni sull'immagine
-            for child in rootSource:
-                if child.tag == "image":
-                    if (child.attrib['name'] in idsCVAT):
+            # per ogni task scarico in locale il dataset cvat corrispondente (immagini + file con annotazioni)
+            for task in tasks:
+                taskPath = path+"/task{}".format(task)
+                CVATapi.get_task_dataset(task, taskPath)
+                
+                # copio in un altra cartella le immagini che ci interessano 
+                for idCVAT in idsCVAT:
+                    if os.path.exists(taskPath+"/images/"+idCVAT):
                         
-                        m2 = ET.Element("image", id=str(index), name=child.attrib['name'], width=child.attrib['width'], height=child.attrib['height'])
-                        m2.text = " "
-                        rootDest.append(m2)
+                        shutil.copy(taskPath+"/images/"+idCVAT, imagesPath)
+                """
+                # prendo il file delle annotazioni scaricato da cvat e lo esamino
+                annPath = taskPath+"/annotations.xml"
 
-                        # QUESTO IN TEORIA SERVE SOLO SE SI CONFRONTA CON LA VERITA, PERCHE LE ANNOTAZIONI PRESENTI SU CVAT SONO QUELLE RELATIVE ALLA VERITA
-                        # MOMENTANEAMENTE LASCIO COSI
-                        # IN UN SECONDO MOMENTO VERRANNO PRESI I DATI DI DUE FILE XML DIVERSI DA QUELLI SCARICATI DA CVAT , OPPURE VERRANNO PRESI DALLE TABELLE 
-                        # DI PREDICTION E QUINDI VERRA PRIMA CREATO UN DB FIFTYONE SENZA ANNOTAZIONI E POI VERRANNO AGGIUNTE IN  UN SECONDO MOMENTO COME LE ALTRE
-                        # PROPRIETA
-                        if len(child) != 0:
-                            hasAnnotations = 'True'
-                            for c in child:
-                                b1 = ET.SubElement(m2, c.tag)
-                                b1.text = " "
-                                for attr in c.attrib:
-                                    b1.set(attr,c.attrib[attr])
+                tree = ET.parse(annPath)
+
+                rootSource = tree.getroot()
+
+                # controlo i tag 'image' e se l'attributo 'name' e' tra gli idsCVAT salvati prima allora aggiungo un elemento al mio nuovo xml con le informazioni sull'immagine
+                for child in rootSource:
+                    if child.tag == "image":
+                        if (child.attrib['name'] in idsCVAT):
                             
-                        index = index + 1
+                            m2 = ET.Element("image", id=str(index), name=child.attrib['name'], width=child.attrib['width'], height=child.attrib['height'])
+                            m2.text = " "
+                            rootDest.append(m2)
 
-            shutil.rmtree(taskPath)
+                            # QUESTO IN TEORIA SERVE SOLO SE SI CONFRONTA CON LA VERITA, PERCHE LE ANNOTAZIONI PRESENTI SU CVAT SONO QUELLE RELATIVE ALLA VERITA
+                            # MOMENTANEAMENTE LASCIO COSI
+                            # IN UN SECONDO MOMENTO VERRANNO PRESI I DATI DI DUE FILE XML DIVERSI DA QUELLI SCARICATI DA CVAT , OPPURE VERRANNO PRESI DALLE TABELLE 
+                            # DI PREDICTION E QUINDI VERRA PRIMA CREATO UN DB FIFTYONE SENZA ANNOTAZIONI E POI VERRANNO AGGIUNTE IN  UN SECONDO MOMENTO COME LE ALTRE
+                            # PROPRIETA
+                            if len(child) != 0:
+                                hasAnnotations = 'True'
+                                for c in child:
+                                    b1 = ET.SubElement(m2, c.tag)
+                                    b1.text = " "
+                                    for attr in c.attrib:
+                                        b1.set(attr,c.attrib[attr])
+                                
+                            
+                """
+                shutil.rmtree(taskPath)
 
-        # scrivo sul file info.txt se ci sono annotazioni o meno
-        info.write(hasAnnotations)
-        info.close()
+            columns = dbquery.get_columns_name_table(pred)
+            datatype = dbquery.get_columns_type_table(pred)
+            text_column = []
 
-        tree = ET.ElementTree(rootDest)
-        
-        with open (annotationPath, "wb") as files :
-            tree.write(files)
-        
-        epoch = time.time()
-        
-        f = open(path+"/dataset/info.txt", "r")
-        hasAnnotations = f.read()
+            for col, dtype in zip(columns, datatype):
+                if dtype[0] == "text":
+                    text_column.append(col[0])
 
-        foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
-    else:
-        # se la cartella esiste vuol dire che ho gia i dati per eseguire il confronto
-        # open and read the file after the appending:
+            if predOrTruth != "/":
+                columns = dbquery.get_columns_name_table(predOrTruth)
+                datatype = dbquery.get_columns_type_table(predOrTruth)
+                text_column_pred2 = []
 
-        epoch = time.time()
+                for col, dtype in zip(columns, datatype):
+                    if dtype[0] == "text":
+                        text_column_pred2.append(col[0])
 
-        if not isExist:
-            f = open(revPath+"/dataset/info.txt", "r")
-            hasAnnotations = f.read()
+            annotationPath = path+"/dataset/annotation.xml"
+            fxml = open(annotationPath, "x")
 
-            foIntegration.create_fo_dataset(str(epoch), revPath+"/dataset/", pred, predOrTruth, hasAnnotations)
+            fxml.write('<annotations><version>1.1</version>')
 
-        elif not isExistReverse:
+            for i, idMVS in enumerate(idsMVS):
+
+                img = Image.open(path+"/dataset/images/"+idsCVAT[i])
+
+                fxml.write('<image id="{}" name="{}" width="{}" height="{}">'.format(index, idsCVAT[i], img.width, img.height))
+
+                row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
+
+                for r in row[0]:
+                    xml_string = str(r).replace('\u00A0',' ')
+                    if re.match(r"(<.[^(><)]+>)", xml_string): 
+                        hasAnnotations = 'True' 
+                        fxml.write(xml_string)
+
+                if predOrTruth != "/":
+                    row = dbquery.get_prediction_by_id(predOrTruth, idMVS, text_column_pred2)
+
+                    for r in row[0]:
+                        xml_string = str(r).replace('\u00A0',' ')
+                        if re.match(r"(<.[^(><)]+>)", xml_string): 
+                            hasAnnotations = 'True' 
+                            fxml.write(xml_string)
+
+                fxml.write('</image>')
+
+                index = index + 1
+            
+            fxml.write('</annotations>')
+            fxml.close()
+            # scrivo sul file info.txt se ci sono annotazioni o meno
+
+            info.write(hasAnnotations)
+            info.close()
+            
+            epoch = time.time()
+            
             f = open(path+"/dataset/info.txt", "r")
             hasAnnotations = f.read()
 
             foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
+        else:
+            # se la cartella esiste vuol dire che ho gia i dati per eseguire il confronto
+            # open and read the file after the appending:
+
+            epoch = time.time()
+
+            if not isExist:
+                f = open(revPath+"/dataset/info.txt", "r")
+                hasAnnotations = f.read()
+
+                foIntegration.create_fo_dataset(str(epoch), revPath+"/dataset/", pred, predOrTruth, hasAnnotations)
+
+            elif not isExistReverse:
+                f = open(path+"/dataset/info.txt", "r")
+                hasAnnotations = f.read()
+
+                foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
+            
+            if predOrTruth == "/":
+                f = open(revPath+"/dataset/info.txt", "r")
+                hasAnnotations = f.read()
+
+                foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
         
-        if predOrTruth == "/":
-            f = open(revPath+"/dataset/info.txt", "r")
-            hasAnnotations = f.read()
-
-            foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
-
 
 def compare_pred_truth(id, pred):
 # prendo i nomi delle immagini che ho caricato su cvat
@@ -167,6 +214,7 @@ def compare_pred_truth(id, pred):
 
     # prendo gli idMVS di una determinata predizione
     idsMVSpred = dbquery.get_prediction_ids(pred)
+    idsMVS = []
     tasks = []
     idsCVAT = []
 
@@ -175,6 +223,7 @@ def compare_pred_truth(id, pred):
             for img in images:
                 if idMVSpred in img[0]:
                     idsCVAT.append(img[0])
+                    idsMVS.append(idMVSpred)
                     if img[2] not in tasks:
                         tasks.append(img[2])
 
@@ -249,6 +298,45 @@ def compare_pred_truth(id, pred):
 
             shutil.rmtree(taskPath)
 
+        #######################################################################################################################
+        columns = dbquery.get_columns_name_table(pred)
+        datatype = dbquery.get_columns_type_table(pred)
+        text_column = []
+
+        for col, dtype in zip(columns, datatype):
+            if dtype[0] == "text":
+                text_column.append(col[0])
+
+        annotationPathPred = "datasets/{}xTruth/dataset/annotationPred.xml".format(pred)
+        fxml = open(annotationPathPred, "x")
+
+        fxml.write('<annotations><version>1.1</version>')
+
+        for i, idMVS in enumerate(idsMVS):
+
+            img = Image.open("datasets/{}xTruth/dataset/images/".format(pred)+idsCVAT[i])
+
+            fxml.write('<image id="{}" name="{}" width="{}" height="{}">'.format(index, idsCVAT[i], img.width, img.height))
+
+            row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
+
+            for r in row[0]:
+                xml_string = str(r).replace('\u00A0',' ')
+                if re.match(r"(<.[^(><)]+>)", xml_string): 
+                    #hasAnnotations = 'True' 
+                    fxml.write(xml_string)
+
+            fxml.write('</image>')
+
+            index = index + 1
+        
+        fxml.write('</annotations>')
+        fxml.close()
+
+
+
+        ######################################################################################################################
+
         # scrivo sul file info.txt se ci sono annotazioni o meno
         info.write(hasAnnotations)
         info.close()
@@ -272,7 +360,7 @@ def compare_pred_truth(id, pred):
     # prendo i dati della prediciton
     MVSpreds = dbquery.get_prediction(pred)
     # prendo le colonne della prediction 
-    columns = dbquery.get_prediction_columns(pred)
+    columns = dbquery.get_columns_name_table(pred)
 
     # vado a vedere quel e l'indice della colonna idSample
     for index, col in enumerate(columns):

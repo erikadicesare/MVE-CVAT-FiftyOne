@@ -1,13 +1,10 @@
-import json
 import os
 import shutil
-import time
-from flask import render_template,request, jsonify, redirect, send_file, session, url_for, make_response
+from flask import render_template,request, redirect, send_file, session, url_for, make_response
 from app import app, CVATapi, comparedb, dbquery, truthdb, predictdb
 from dotenv import load_dotenv
 from queue import Queue
 from threading import Thread
-from time import sleep
 
 load_dotenv()
 

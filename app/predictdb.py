@@ -1,8 +1,8 @@
-import math
 import pandas as pd
 import ntpath, os, shutil
 from flask import make_response, redirect, render_template, request, url_for
 from app import dbquery
+import re
 
 # Leggo file csv o xlsx 
 def read_file(file, idMVE):
@@ -31,7 +31,7 @@ def read_file(file, idMVE):
         data = pd.read_csv(filepath_or_buffer=pathFile)
     else:
         data=pd.read_excel(io=pathFile)
-
+    
     # Se la colonna con il sampleId non esiste, restituisco un errore
     stringSampleId = 'sampleid'
     stringIdSample = 'idsample'
@@ -91,6 +91,9 @@ def read_file(file, idMVE):
                     allNull = False
                     if ((isinstance(d, float)) or (isinstance(d, int))):
                         dataType = "DOUBLE"
+                    elif re.match(r"(<.[^(><)]+>)", str(d)):  
+                        print(d)
+                        dataType = "TEXT"
                     else:
                         dataType = "VARCHAR(100)"
                     
@@ -162,7 +165,7 @@ def download_pred(idMVE, pred):
 
     # prendo i nomi delle colonne della tabella selezionata dall'utente 
     # e cambio la colonna con nome 'idMVS' con 'ObjKey' 
-    dbcolumns = dbquery.get_prediction_columns(pred)
+    dbcolumns = dbquery.get_columns_name_table(pred)
     columns = []
     for col in dbcolumns:
         if col[0] == 'idMVS':

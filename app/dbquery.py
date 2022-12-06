@@ -1,4 +1,3 @@
-from pathlib import Path
 import mysql.connector
 from app import CVATapi
 import ntpath, os
@@ -738,16 +737,27 @@ def get_prediction(table_name):
 
     return results
 
-# prendo i nomi delle colonne di una tabella
-def get_prediction_columns(table_name):
+# prendo una determinata riga di una prediction 
+def get_prediction_by_id(table_name, idMVS, columns):
+    
+    col_str = ""
+    for index, col in enumerate(columns):
+        if index == 0:
+            col_str = col_str+col
+        else:
+            col_str = col_str+", "+col
+   
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
-    mycursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s", (name_db, table_name))
-    columns = mycursor.fetchall()
+    sql = "SELECT {} FROM {} WHERE IdMVS=%s;".format(col_str, table_name)
+    value = (idMVS,)
+    mycursor.execute(sql, value)
+
+    row = mycursor.fetchall()
 
     mycursor.close()
     mydb.close()
 
-    return columns
+    return row
 

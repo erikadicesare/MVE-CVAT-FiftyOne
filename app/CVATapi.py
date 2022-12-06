@@ -1,16 +1,11 @@
 from zipfile import ZipFile
-from flask import request
 import requests
 import os, json
 from pathlib import Path
 import ntpath
-import shutil
 from PIL import Image  
 from app import dbquery
-import PIL  
 from dotenv import load_dotenv
-from time import sleep
-from cvat_sdk.api_client import Configuration, ApiClient, models, apis, exceptions
 
 load_dotenv()
 
@@ -18,6 +13,7 @@ username = os.getenv('USERNAME_CVAT')
 password = os.getenv('PASSWORD_CVAT')
 url_cvat = os.getenv('URL_CVAT')
 
+max_num_of_task = 1000
 max_size_load_file = os.getenv('MAX_SIZE_LOAD_FILE')
 
 credentials = {
@@ -151,7 +147,7 @@ def get_project(id_prj_MVE, id_prj_CVAT):
     name = jsonObj['name']
 
     # prendo i task del progetto CVAT
-    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id_prj_CVAT), headers={"Authorization": f'Token {keyLogin}'})
+    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id_prj_CVAT),params={"page_size" : max_num_of_task}, headers={"Authorization": f'Token {keyLogin}'})
     jsonTasks = json.loads(tasks.text)
     
     # 'results' contiene i task
@@ -164,7 +160,7 @@ def get_project(id_prj_MVE, id_prj_CVAT):
                 size = 0
             else:
                 size = t['size']
-
+                
         files = os.listdir('./app/static/data/projectCVAT')
         for file in files:
             file_name, file_extension = ntpath.splitext(file)
@@ -197,7 +193,7 @@ def get_tasks(id):
 
     keyLogin = generate_key_login()
 
-    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), params={"page_size" :1000},headers={"Authorization": f'Token {keyLogin}'})
+    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), params={"page_size" : max_num_of_task},headers={"Authorization": f'Token {keyLogin}'})
     jsonTasks = json.loads(tasks.text)
     task = []
     for jsonTask in jsonTasks['results']:
@@ -225,7 +221,7 @@ def get_tasks(id):
 def get_tasks_ids(id):
     keyLogin = generate_key_login()
 
-    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
+    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), params={"page_size" : max_num_of_task}, headers={"Authorization": f'Token {keyLogin}'})
     jsonTasks = json.loads(tasks.text)
     ids = []
     for jsonTask in jsonTasks['results']:
@@ -236,8 +232,15 @@ def get_tasks_ids(id):
 # cancello un task specifico
 def delete_task(id):
     keyLogin = generate_key_login()
-
+    
     prj = requests.delete('{}/tasks/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
+    
+    # Se esiste elimino l'immagine salvata in "static/data/projectCVAT" durante la creazione del task 
+    files = os.listdir('./app/static/data/projectCVAT')
+    for file in files:
+        file_name, file_extension = ntpath.splitext(file)
+        if (file_name==id):
+            os.remove("app/static/data/projectCVAT/{}{}".format(file_name, file_extension))
 
 # prendo gli id di tutti i progetti esistenti su cvat e li metto in una lista
 def get_projects_id():
@@ -275,91 +278,3 @@ def get_task_dataset(id, folderPath):
         zObject.extractall(path=folderPath)
     
     os.remove(folderPathzip)
-
-"""
-def prova():
-    configuration = Configuration(
-        host="http://192.168.1.92:8080",
-        username=username,
-        password=password,
-    )
-
-    # Enter a context with an instance of the API client
-    with ApiClient(configuration) as api_client:
-        # Parameters can be passed as a plain dict with JSON-serialized data
-        # or as model objects (from cvat_sdk.api_client.models), including
-        # mixed variants.
-        #
-        # In case of dicts, keys must be the same as members of models.I<ModelName>
-        # interfaces and values must be convertible to the corresponding member
-        # value types (e.g. a date or string enum value can be parsed from a string).
-        #
-        # In case of model objects, data must be of the corresponding
-        # models.<ModelName> types.
-        #
-        # Let's use a dict here. It should look like models.ITaskWriteRequest
-        task_spec = {
-            'name': 'example task',
-            "labels": [{
-                "name": "car",
-                "color": "#ff00ff",
-                "attributes": [
-                    {
-                        "name": "a",
-                        "mutable": True,
-                        "input_type": "number",
-                        "default_value": "5",
-                        "values": ["4", "5", "6"]
-                    }
-                ]
-            }],
-        }
-
-        try:
-            # Apis can be accessed as ApiClient class members
-            # We use different models for input and output data. For input data,
-            # models are typically called like "*Request". Output data models have
-            # no suffix.
-            (task, response) = api_client.tasks_api.create(task_spec)
-        except exceptions.ApiException as e:
-            # We can catch the basic exception type, or a derived type
-            print("Exception when trying to create a task: %s\n" % e)
-
-        fs = []
-
-        for filename in os.listdir('/home/musausr/images/cvat3'):
-           
-            fs.append('/home/musausr/images/cvat3/'+filename)
-   
-        images = [open(f, 'rb') for i, f in enumerate(fs)]
-        # Here we will use models instead of a dict
-        task_data = models.DataRequest(
-            image_quality=75,
-            client_files=images,
-        )
-        
-
-        # If we pass binary file objects, we need to specify content type.
-        # For this endpoint, we don't have response data
-        (_, response) = api_client.tasks_api.create_data(task.id,
-            data_request=task_data,
-            _content_type="multipart/form-data",
-
-            # we can choose to check the response status manually
-            # and disable the response data parsing
-            _check_status=False, _parse_response=False
-        )
-        assert response.status == 202, response.msg
-
-        # Wait till task data is processed
-        for _ in range(100):
-            (status, _) = api_client.tasks_api.retrieve_status(task.id)
-            if status.state.value in ['Finished', 'Failed']:
-                break
-            sleep(0.1)
-        assert status.state.value == 'Finished', status.message
-
-        # Update the task object and check the task size
-        (task, _) = api_client.tasks_api.retrieve(task.id)
-        assert task.size == 4
-"""
