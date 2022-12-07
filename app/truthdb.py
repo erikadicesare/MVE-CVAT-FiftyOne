@@ -81,6 +81,9 @@ def create_row_truth_values(idMVE, data, i, col, columns):
     # in caso affermativo vado ad aggiornare le proprieta in truthValue (elimino quelle 
     # esistenti e aggiungo quelli nuovi)
     sampleIdNames = dbquery.get_sampleIdNames_truth_MVE(idMVE)
+    if sampleIdNames == []:
+        updated = None
+        
     for sample in sampleIdNames:
         if data[col][i] == sample['name']:
             updated = i

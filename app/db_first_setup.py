@@ -6,8 +6,8 @@ load_dotenv()
 
 user_db = os.getenv('USER_DB')
 name_db = os.getenv('NAME_DB')
-#pw_db = os.getenv('PW_DB')
-
+pw_db = os.getenv('PW_DB')
+"""
 params = {
     'user': '', ##### insert the name of the user 
     'password': '', #### insert the password
@@ -17,10 +17,10 @@ mydb = mysql.connector.connect(**params)
 mycursor = mydb.cursor()
 
 mycursor.execute("CREATE DATABASE `MVE Database`")
-
+"""
 params = {
-    'user': '', ##### insert the name of the user 
-    'password': '', #### insert the password
+    'user': user_db, ##### insert the name of the user 
+    'password': pw_db, #### insert the password
     'database': 'MVE Database'
 }
 
@@ -114,7 +114,7 @@ def create_MVSxCVAT():
 
     sql = """
             CREATE TABLE MVSxCVAT 
-            (IdCVAT BIGINT(20) NOT NULL,
+            (IdCVAT VARCHAR(100) NOT NULL,
             IdProjectMVE BIGINT(20) NOT NULL,
             IdTask VARCHAR(100) NOT NULL,
             PRIMARY KEY (IdCVAT, IdProjectMVE), 
@@ -127,9 +127,9 @@ def create_MVSxCVAT():
     mydb.close()
 
 
-create_ProjectsMVE()
-create_ProjectMVExProjectCVAT()
-create_Truth()
-create_TruthValues()
-create_PredList()
+#create_ProjectsMVE()
+#create_ProjectMVExProjectCVAT()
+#create_Truth()
+#create_TruthValues()
+#create_PredList()
 create_MVSxCVAT()

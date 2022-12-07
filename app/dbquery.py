@@ -7,12 +7,12 @@ load_dotenv()
 
 user_db = os.getenv('USER_DB')
 name_db = os.getenv('NAME_DB')
-#pw_db = os.getenv('PW_DB')
+pw_db = os.getenv('PW_DB')
 
 params = {
     'user': user_db, 
     'database': name_db,
-    #'password': pw_db
+    'password': pw_db
 }
 
 # creazione nuovo progetto MVE 

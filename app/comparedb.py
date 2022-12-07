@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -72,10 +73,13 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
             os.makedirs(imagesPath)
             
             # file aggiuntivo usato per scriverci se un dataset ha annotazioni o meno (in caso di confronto gia esistente si va a pescare questa informazine)
-            info = open(path+"/dataset/info.txt", "w")
+            info = open(path+"/dataset/info.json", "w")
 
             index = 0
-            hasAnnotations = 'False'
+            hasAnnotations = {
+                'pred1':'False',
+                'predOrTruth': 'False'
+            }
 
             # per ogni task scarico in locale il dataset cvat corrispondente (immagini + file con annotazioni)
             for task in tasks:
@@ -89,7 +93,7 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
                         shutil.copy(taskPath+"/images/"+idCVAT, imagesPath)
                 """
                 # prendo il file delle annotazioni scaricato da cvat e lo esamino
-                annPath = taskPath+"/annotations.xml"
+                annPath = taskPath+"/annotation.xml"
 
                 tree = ET.parse(annPath)
 
@@ -129,17 +133,8 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
                 if dtype[0] == "text":
                     text_column.append(col[0])
 
-            if predOrTruth != "/":
-                columns = dbquery.get_columns_name_table(predOrTruth)
-                datatype = dbquery.get_columns_type_table(predOrTruth)
-                text_column_pred2 = []
-
-                for col, dtype in zip(columns, datatype):
-                    if dtype[0] == "text":
-                        text_column_pred2.append(col[0])
-
-            annotationPath = path+"/dataset/annotation.xml"
-            fxml = open(annotationPath, "x")
+            annotationPathPred1 = path+"/dataset/annotationPred1.xml"
+            fxml = open(annotationPathPred1, "x")
 
             fxml.write('<annotations><version>1.1</version>')
 
@@ -154,17 +149,8 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
                 for r in row[0]:
                     xml_string = str(r).replace('\u00A0',' ')
                     if re.match(r"(<.[^(><)]+>)", xml_string): 
-                        hasAnnotations = 'True' 
+                        hasAnnotations["pred1"] = 'True' 
                         fxml.write(xml_string)
-
-                if predOrTruth != "/":
-                    row = dbquery.get_prediction_by_id(predOrTruth, idMVS, text_column_pred2)
-
-                    for r in row[0]:
-                        xml_string = str(r).replace('\u00A0',' ')
-                        if re.match(r"(<.[^(><)]+>)", xml_string): 
-                            hasAnnotations = 'True' 
-                            fxml.write(xml_string)
 
                 fxml.write('</image>')
 
@@ -172,15 +158,52 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
             
             fxml.write('</annotations>')
             fxml.close()
+
+            if predOrTruth != "/":
+                columns = dbquery.get_columns_name_table(predOrTruth)
+                datatype = dbquery.get_columns_type_table(predOrTruth)
+                text_column_pred2 = []
+
+                for col, dtype in zip(columns, datatype):
+                    if dtype[0] == "text":
+                        text_column_pred2.append(col[0])
+                
+
+                annotationPathPred2 = path+"/dataset/annotationPred2.xml"
+                fxml2 = open(annotationPathPred2, "x")
+
+                fxml2.write('<annotations><version>1.1</version>')
+
+                for i, idMVS in enumerate(idsMVS):
+
+                    img = Image.open(path+"/dataset/images/"+idsCVAT[i])
+
+                    fxml2.write('<image id="{}" name="{}" width="{}" height="{}">'.format(index, idsCVAT[i], img.width, img.height))
+
+                    row = dbquery.get_prediction_by_id(predOrTruth, idMVS, text_column_pred2)
+
+                    for r in row[0]:
+                        xml_string = str(r).replace('\u00A0',' ')
+                        if re.match(r"(<.[^(><)]+>)", xml_string): 
+                            hasAnnotations["predOrTruth"] = 'True' 
+                            fxml2.write(xml_string)
+
+                    fxml2.write('</image>')
+
+                    index = index + 1
+                
+                fxml2.write('</annotations>')
+                fxml2.close()
+
             # scrivo sul file info.txt se ci sono annotazioni o meno
 
-            info.write(hasAnnotations)
+            info.write(json.dumps(hasAnnotations))
             info.close()
             
             epoch = time.time()
             
-            f = open(path+"/dataset/info.txt", "r")
-            hasAnnotations = f.read()
+            f = open(path+"/dataset/info.json", "r")
+            hasAnnotations = json.load(f)
 
             foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
         else:
@@ -190,20 +213,20 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
             epoch = time.time()
 
             if not isExist:
-                f = open(revPath+"/dataset/info.txt", "r")
-                hasAnnotations = f.read()
+                f = open(revPath+"/dataset/info.json", "r")
+                hasAnnotations = json.load(f)
 
                 foIntegration.create_fo_dataset(str(epoch), revPath+"/dataset/", pred, predOrTruth, hasAnnotations)
 
             elif not isExistReverse:
-                f = open(path+"/dataset/info.txt", "r")
-                hasAnnotations = f.read()
+                f = open(path+"/dataset/info.json", "r")
+                hasAnnotations = json.load(f)
 
                 foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
             
             if predOrTruth == "/":
-                f = open(revPath+"/dataset/info.txt", "r")
-                hasAnnotations = f.read()
+                f = open(revPath+"/dataset/info.json", "r")
+                hasAnnotations = json.load(f)
 
                 foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
         
@@ -236,10 +259,10 @@ def compare_pred_truth(id, pred):
     if not isExist:
         os.makedirs(imagesPath)
 
-        annotationPath = "datasets/{}xTruth/dataset/annotation.xml".format(pred)
+        annotationPath = "datasets/{}xTruth/dataset/annotationTruth.xml".format(pred)
         
         # file aggiuntivo usato per scriverci se un dataset ha annotazioni o meno (in caso di confronto gia esistente si va a pescare questa informazine)
-        info = open("datasets/{}xTruth/dataset/info.txt".format(pred), "w")
+        info = open("datasets/{}xTruth/dataset/info.json".format(pred), "w")
 
         # Preparo il nuovo file xml con le annotazioni delle sole immagini che mi interessano
         rootDest = ET.Element("annotations")
@@ -252,7 +275,10 @@ def compare_pred_truth(id, pred):
         index = 0
 
         # variabile che mi serve per sapere se il dataset sara di tipo cvat o immagini (nel caso in cui non ci sia un file xml da caricare)
-        hasAnnotations = 'False'
+        hasAnnotations = {
+            'pred1':'False',
+            'predOrTruth': 'False'
+        }
 
         # per ogni task scarico in locale il dataset cvat corrispondente (immagini + file con annotazioni)
         for task in tasks:
@@ -271,7 +297,7 @@ def compare_pred_truth(id, pred):
             tree = ET.parse(annPath)
 
             rootSource = tree.getroot()
-
+            
             # controlo i tag 'image' e se l'attributo 'name' e' tra gli idsCVAT salvati prima allora aggiungo un elemento al mio nuovo xml con le informazioni sull'immagine
             for child in rootSource:
                 if child.tag == "image":
@@ -287,7 +313,7 @@ def compare_pred_truth(id, pred):
                         # DI PREDICTION E QUINDI VERRA PRIMA CREATO UN DB FIFTYONE SENZA ANNOTAZIONI E POI VERRANNO AGGIUNTE IN  UN SECONDO MOMENTO COME LE ALTRE
                         # PROPRIETA
                         if len(child) != 0:
-                            hasAnnotations = 'True'
+                            hasAnnotations["pred1"]='True'
                             for c in child:
                                 b1 = ET.SubElement(m2, c.tag)
                                 b1.text = " "
@@ -307,7 +333,7 @@ def compare_pred_truth(id, pred):
             if dtype[0] == "text":
                 text_column.append(col[0])
 
-        annotationPathPred = "datasets/{}xTruth/dataset/annotationPred.xml".format(pred)
+        annotationPathPred = "datasets/{}xTruth/dataset/annotationPred1.xml".format(pred)
         fxml = open(annotationPathPred, "x")
 
         fxml.write('<annotations><version>1.1</version>')
@@ -323,7 +349,7 @@ def compare_pred_truth(id, pred):
             for r in row[0]:
                 xml_string = str(r).replace('\u00A0',' ')
                 if re.match(r"(<.[^(><)]+>)", xml_string): 
-                    #hasAnnotations = 'True' 
+                    hasAnnotations["predOrTruth"]='True'
                     fxml.write(xml_string)
 
             fxml.write('</image>')
@@ -333,12 +359,10 @@ def compare_pred_truth(id, pred):
         fxml.write('</annotations>')
         fxml.close()
 
-
-
         ######################################################################################################################
 
         # scrivo sul file info.txt se ci sono annotazioni o meno
-        info.write(hasAnnotations)
+        info.write(json.dumps(hasAnnotations))
         info.close()
 
         tree = ET.ElementTree(rootDest)
@@ -348,12 +372,12 @@ def compare_pred_truth(id, pred):
             tree.write(files)
     
     # open and read the file after the appending:
-    f = open("datasets/{}xTruth/dataset/info.txt".format(pred), "r")
-    hasAnnotations = f.read()
+    f = open("datasets/{}xTruth/dataset/info.json".format(pred), "r")
+    hasAnnotations = json.load(f)
 
     # random legato al tempo: nome del dataset su fiftyone
     epoch = time.time()
-
+    
     # creo il dataset su cvat e carico i valori numerici della predizione
     dataset = foIntegration.create_fo_dataset(str(epoch), "datasets/{}xTruth/dataset/".format(pred), pred, 'Truth', hasAnnotations)
 

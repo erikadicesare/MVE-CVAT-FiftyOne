@@ -6,22 +6,69 @@ def create_fo_dataset(id, path, pred, predOrTruth, hasAnnotations):
     # cartella con le immagini
     data_path = path + "images/"
 
+    if predOrTruth == 'Truth':
+        labels_path2 = path + "annotationTruth.xml"
+        label_field2 = "Truth"
+    elif predOrTruth != '/':
+        labels_path2 = path + "annotationPred2.xml"
+        label_field2 = "Prediction2"
+
     # file con annotazioni xml
-    labels_path = path + "annotation.xml"
+    labels_path = path + "annotationPred1.xml"
 
-    export_dir = "/home/musausr/fiftyone/datasets_generated/" + id
+    export_dir = "/home/utente/anaconda3/envs/flaskenv/datasets_generated/" + id
 
-    if hasAnnotations == 'True':
+    if hasAnnotations["pred1"] == 'True' and hasAnnotations["predOrTruth"] == 'True':
         # importo il dataset con immagini e annotazioni
         dataset = fo.Dataset.from_dir(
             dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
-            label_field="prediction",
+            label_field="prediction1",
             data_path=data_path,
             labels_path=labels_path,
             include_id=True,
             name=id
         )
-
+        if predOrTruth != '/':
+            # Merge in predictions
+            dataset.merge_dir(
+                data_path=data_path,
+                labels_path=labels_path2,
+                dataset_type=fo.types.CVATImageDataset,
+                label_field=label_field2,
+            )
+        
+        # esporto il dataset
+        dataset.export(
+            export_dir=export_dir,
+            dataset_type=fo.types.CVATImageDataset
+        )
+    elif hasAnnotations["pred1"] == 'True' and hasAnnotations["predOrTruth"] == 'False':
+        # importo il dataset con immagini e annotazioni
+        dataset = fo.Dataset.from_dir(
+            dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
+            label_field="prediction1",
+            data_path=data_path,
+            labels_path=labels_path,
+            include_id=True,
+            name=id
+        )
+        
+        # esporto il dataset
+        dataset.export(
+            export_dir=export_dir,
+            dataset_type=fo.types.CVATImageDataset
+        )
+    elif hasAnnotations["pred1"] == 'False' and hasAnnotations["predOrTruth"] == 'True':
+        # importo il dataset con immagini e annotazioni
+        dataset = fo.Dataset.from_dir(
+            dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
+            label_field=label_field2,
+            data_path=data_path,
+            labels_path=labels_path2,
+            include_id=True,
+            name=id
+        )
+        
         # esporto il dataset
         dataset.export(
             export_dir=export_dir,
@@ -34,7 +81,7 @@ def create_fo_dataset(id, path, pred, predOrTruth, hasAnnotations):
             dataset_type=fo.types.ImageDirectory,
             name=id
         )
-
+        
         # esporto il dataset
         dataset.export(
             export_dir=export_dir,
