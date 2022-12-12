@@ -91,61 +91,40 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
                     if os.path.exists(taskPath+"/images/"+idCVAT):
                         
                         shutil.copy(taskPath+"/images/"+idCVAT, imagesPath)
-                """
-                # prendo il file delle annotazioni scaricato da cvat e lo esamino
-                annPath = taskPath+"/annotation.xml"
 
-                tree = ET.parse(annPath)
-
-                rootSource = tree.getroot()
-
-                # controlo i tag 'image' e se l'attributo 'name' e' tra gli idsCVAT salvati prima allora aggiungo un elemento al mio nuovo xml con le informazioni sull'immagine
-                for child in rootSource:
-                    if child.tag == "image":
-                        if (child.attrib['name'] in idsCVAT):
-                            
-                            m2 = ET.Element("image", id=str(index), name=child.attrib['name'], width=child.attrib['width'], height=child.attrib['height'])
-                            m2.text = " "
-                            rootDest.append(m2)
-
-                            # QUESTO IN TEORIA SERVE SOLO SE SI CONFRONTA CON LA VERITA, PERCHE LE ANNOTAZIONI PRESENTI SU CVAT SONO QUELLE RELATIVE ALLA VERITA
-                            # MOMENTANEAMENTE LASCIO COSI
-                            # IN UN SECONDO MOMENTO VERRANNO PRESI I DATI DI DUE FILE XML DIVERSI DA QUELLI SCARICATI DA CVAT , OPPURE VERRANNO PRESI DALLE TABELLE 
-                            # DI PREDICTION E QUINDI VERRA PRIMA CREATO UN DB FIFTYONE SENZA ANNOTAZIONI E POI VERRANNO AGGIUNTE IN  UN SECONDO MOMENTO COME LE ALTRE
-                            # PROPRIETA
-                            if len(child) != 0:
-                                hasAnnotations = 'True'
-                                for c in child:
-                                    b1 = ET.SubElement(m2, c.tag)
-                                    b1.text = " "
-                                    for attr in c.attrib:
-                                        b1.set(attr,c.attrib[attr])
-                                
-                            
-                """
                 shutil.rmtree(taskPath)
 
+            # prendo le colonne e il loro tipo della prima predizione selezionata 
             columns = dbquery.get_columns_name_table(pred)
             datatype = dbquery.get_columns_type_table(pred)
             text_column = []
-
+            
+            # per ogni colonna/tipo se il tipo e' "text" la aggiungo alla lista text_column
             for col, dtype in zip(columns, datatype):
                 if dtype[0] == "text":
                     text_column.append(col[0])
-
+            
+            # creo un file xml vuoto
             annotationPathPred1 = path+"/dataset/annotationPred1.xml"
             fxml = open(annotationPathPred1, "x")
 
+            # scrivo nel file appena creato i tag seguenti
             fxml.write('<annotations><version>1.1</version>')
 
+            # per ogni idsMVS:
             for i, idMVS in enumerate(idsMVS):
-
+                
+                # prendo l'immagine a cui fanno riferimento e scrivo nel file un tag <image> con alcuni attributi
                 img = Image.open(path+"/dataset/images/"+idsCVAT[i])
 
                 fxml.write('<image id="{}" name="{}" width="{}" height="{}">'.format(index, idsCVAT[i], img.width, img.height))
-
+                
+                # prendo la riga della prediction con l'id corrente (nb prendo solo i valori delle colonne di tipo "text", 
+                # cioe quelle che hanno dei tag al loro interno come valore)
                 row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
 
+                # per ogni valore della riga faccio un controllo ulteriore, cioe guardo se effettivamente soddisfano la regex 
+                # per i tag, poi li scrivo nel file xml
                 for r in row[0]:
                     xml_string = str(r).replace('\u00A0',' ')
                     if re.match(r"(<.[^(><)]+>)", xml_string): 
@@ -159,27 +138,35 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
             fxml.write('</annotations>')
             fxml.close()
 
+            # se siamo nel caso in cui sto confrontando due predizioni, faccio la stessa cosa per la seconda predizione
             if predOrTruth != "/":
+                # prendo le colonne e il loro tipo della prima predizione selezionata 
                 columns = dbquery.get_columns_name_table(predOrTruth)
                 datatype = dbquery.get_columns_type_table(predOrTruth)
                 text_column_pred2 = []
 
+                # per ogni colonna/tipo se il tipo e' "text" la aggiungo alla lista text_column_pred2
                 for col, dtype in zip(columns, datatype):
                     if dtype[0] == "text":
                         text_column_pred2.append(col[0])
                 
-
+                # creo un file xml vuoto
                 annotationPathPred2 = path+"/dataset/annotationPred2.xml"
                 fxml2 = open(annotationPathPred2, "x")
-
+                
+                # scrivo nel file appena creato i tag seguenti
                 fxml2.write('<annotations><version>1.1</version>')
 
+                # per ogni idsMVS:
                 for i, idMVS in enumerate(idsMVS):
-
+                    
+                    # prendo l'immagine a cui fanno riferimento e scrivo nel file un tag <image> con alcuni attributi
                     img = Image.open(path+"/dataset/images/"+idsCVAT[i])
 
                     fxml2.write('<image id="{}" name="{}" width="{}" height="{}">'.format(index, idsCVAT[i], img.width, img.height))
 
+                    # prendo la riga della prediction con l'id corrente (nb prendo solo i valori delle colonne di tipo "text", 
+                    # cioe quelle che hanno dei tag al loro interno come valore)
                     row = dbquery.get_prediction_by_id(predOrTruth, idMVS, text_column_pred2)
 
                     for r in row[0]:
@@ -291,6 +278,9 @@ def compare_pred_truth(id, pred):
                     
                     shutil.copy(taskPath+"/images/"+idCVAT, imagesPath)
             
+        ## CREAZIONE FILE XML TRUTH ##
+        #######################################################################################################################
+
             # prendo il file delle annotazioni scaricato da cvat e lo esamino
             annPath = taskPath+"/annotations.xml"
 
@@ -307,13 +297,9 @@ def compare_pred_truth(id, pred):
                         m2.text = " "
                         rootDest.append(m2)
 
-                        # QUESTO IN TEORIA SERVE SOLO SE SI CONFRONTA CON LA VERITA, PERCHE LE ANNOTAZIONI PRESENTI SU CVAT SONO QUELLE RELATIVE ALLA VERITA
-                        # MOMENTANEAMENTE LASCIO COSI
-                        # IN UN SECONDO MOMENTO VERRANNO PRESI I DATI DI DUE FILE XML DIVERSI DA QUELLI SCARICATI DA CVAT , OPPURE VERRANNO PRESI DALLE TABELLE 
-                        # DI PREDICTION E QUINDI VERRA PRIMA CREATO UN DB FIFTYONE SENZA ANNOTAZIONI E POI VERRANNO AGGIUNTE IN  UN SECONDO MOMENTO COME LE ALTRE
-                        # PROPRIETA
+                        # se il tag <image> ha al suo interno altri tag, li vado a prendere
                         if len(child) != 0:
-                            hasAnnotations["pred1"]='True'
+                            hasAnnotations["predOrTruth"]='True'
                             for c in child:
                                 b1 = ET.SubElement(m2, c.tag)
                                 b1.text = " "
@@ -324,32 +310,42 @@ def compare_pred_truth(id, pred):
 
             shutil.rmtree(taskPath)
 
+        ## CREAZIONE FILE XML PREDIZIONE ##
         #######################################################################################################################
+        
+        # prendo le colonne e il loro tipo della prima predizione selezionata 
         columns = dbquery.get_columns_name_table(pred)
         datatype = dbquery.get_columns_type_table(pred)
         text_column = []
 
+        # per ogni colonna/tipo se il tipo e' "text" la aggiungo alla lista text_column
         for col, dtype in zip(columns, datatype):
             if dtype[0] == "text":
                 text_column.append(col[0])
 
+        # creo un file xml vuoto
         annotationPathPred = "datasets/{}xTruth/dataset/annotationPred1.xml".format(pred)
         fxml = open(annotationPathPred, "x")
-
+        
+        # scrivo nel file appena creato i tag seguenti
         fxml.write('<annotations><version>1.1</version>')
 
+        # per ogni idsMVS:
         for i, idMVS in enumerate(idsMVS):
 
+            # prendo l'immagine a cui fanno riferimento e scrivo nel file un tag <image> con alcuni attributi
             img = Image.open("datasets/{}xTruth/dataset/images/".format(pred)+idsCVAT[i])
 
             fxml.write('<image id="{}" name="{}" width="{}" height="{}">'.format(index, idsCVAT[i], img.width, img.height))
-
+            
+            # prendo la riga della prediction con l'id corrente (nb prendo solo i valori delle colonne di tipo "text", 
+            # cioe quelle che hanno dei tag al loro interno come valore)
             row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
 
             for r in row[0]:
                 xml_string = str(r).replace('\u00A0',' ')
                 if re.match(r"(<.[^(><)]+>)", xml_string): 
-                    hasAnnotations["predOrTruth"]='True'
+                    hasAnnotations["pred1"]='True'
                     fxml.write(xml_string)
 
             fxml.write('</image>')

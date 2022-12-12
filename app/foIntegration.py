@@ -1,6 +1,12 @@
+import os
 import fiftyone as fo
 import ntpath
 from app import dbquery
+from dotenv import load_dotenv
+
+load_dotenv()
+
+export_dir_fo = os.getenv('EXPORT_DIR_FO')
 
 def create_fo_dataset(id, path, pred, predOrTruth, hasAnnotations):
     # cartella con le immagini
@@ -11,18 +17,18 @@ def create_fo_dataset(id, path, pred, predOrTruth, hasAnnotations):
         label_field2 = "Truth"
     elif predOrTruth != '/':
         labels_path2 = path + "annotationPred2.xml"
-        label_field2 = "Prediction2"
+        label_field2 = str(predOrTruth)
 
     # file con annotazioni xml
     labels_path = path + "annotationPred1.xml"
 
-    export_dir = "/home/utente/anaconda3/envs/flaskenv/datasets_generated/" + id
+    export_dir = "/home/musausr/fiftyone/datasets_generated/" + id
 
     if hasAnnotations["pred1"] == 'True' and hasAnnotations["predOrTruth"] == 'True':
         # importo il dataset con immagini e annotazioni
         dataset = fo.Dataset.from_dir(
             dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
-            label_field="prediction1",
+            label_field=str(pred),
             data_path=data_path,
             labels_path=labels_path,
             include_id=True,
@@ -46,7 +52,7 @@ def create_fo_dataset(id, path, pred, predOrTruth, hasAnnotations):
         # importo il dataset con immagini e annotazioni
         dataset = fo.Dataset.from_dir(
             dataset_type=fo.types.CVATImageDataset, #CVATImageDataset
-            label_field="prediction1",
+            label_field=str(pred),
             data_path=data_path,
             labels_path=labels_path,
             include_id=True,

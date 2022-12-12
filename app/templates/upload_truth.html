@@ -24,8 +24,10 @@
                 <input type="hidden" name="uuid" >
 
                 <br/>
-                <input type="submit" value="Process File" class="btn btn-primary"/><br/>
+                <input type="submit" value="Process File" onclick="loading();" class="btn btn-primary"/><br/>
             </form>
+            <br/>
+            <div id="loading" style="display:none; align-items:center; justify-content:center;"><img src="{{url_for('static',filename = 'data/icons/loading.gif')}}" alt="" width="100" height="100"/></div>
             </div>
           </div>
         </div>
@@ -56,6 +58,19 @@ del file hanno sostituito quelle esistenti nel database con lo stesso nome.
     
   var uuid = Math.random().toString().replace("0.", "")
   $('input[type=hidden]').val(uuid)
+
+  const filler = document.getElementById("loading");  
+  function loading() {
+    //use on form
+    if ($('form')[0].checkValidity()) {
+      if (filler.style.display === "none") {
+        filler.style.display = "flex";
+      } else {
+        filler.style.display = "none";
+      }
+    }
+    
+  } 
 
 </script>
 {% endblock %}
