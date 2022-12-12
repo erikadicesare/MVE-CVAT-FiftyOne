@@ -27,7 +27,7 @@ def new_projectMVE(name_prj, desc_prj, img_prj):
     relative_path = "data/project-icon/" + tailfp
 
     mycursor = mydb.cursor()
-    sql = "INSERT INTO ProjectsMVE (NomeProgetto, Descrizione, ImmagineDescrittiva) VALUES (%s, %s, %s)"
+    sql = "INSERT INTO ProjectsMVE (Name, Description, Image) VALUES (%s, %s, %s)"
     val = (name_prj, desc_prj, relative_path)
     mycursor.execute(sql, val)
 
@@ -45,7 +45,7 @@ def edit_projectMVE(id_prj, name_prj, desc_prj, img_prj):
     # se l'utente decide di non modificare l'immagine, vado aprendere quella esistente, altrimenti uso quella appena inserita
     if img_prj.filename == '':
         mycursor = mydb.cursor()
-        mycursor.execute("SELECT ImmagineDescrittiva FROM ProjectsMVE WHERE IdProjectMVE=%s", (id_prj,))
+        mycursor.execute("SELECT Image FROM ProjectsMVE WHERE IdProjectMVE=%s", (id_prj,))
         projectsMVE = mycursor.fetchone()
         relative_path = projectsMVE[0]
     else:
@@ -58,7 +58,7 @@ def edit_projectMVE(id_prj, name_prj, desc_prj, img_prj):
 
     mycursor.execute ("""
     UPDATE ProjectsMVE
-    SET NomeProgetto=%s, Descrizione=%s, ImmagineDescrittiva=%s
+    SET Name=%s, Description=%s, Image=%s
     WHERE IdProjectMVE=%s
     """, (name_prj, desc_prj, relative_path, id_prj))
 
@@ -232,12 +232,12 @@ def insert_truth(idMVE, name):
     return ItemID
 
 # creo una istanza nella tabella TruthValues
-def insert_truth_values(idTruth, propName, valReal, valStr):
+def insert_truth_values(idSample, propName, valReal, valStr):
     mydb = mysql.connector.connect(**params)
 
     mycursor = mydb.cursor()
-    sql = "INSERT INTO TruthValues (IdTruth, PropName, ValueReal, ValueString) VALUES (%s, %s, %s, %s)"
-    val = (idTruth, propName, valReal, valStr)
+    sql = "INSERT INTO TruthValues (IdSample, PropName, ValueReal, ValueString) VALUES (%s, %s, %s, %s)"
+    val = (idSample, propName, valReal, valStr)
     mycursor.execute(sql, val)
 
     mydb.commit()
@@ -251,7 +251,7 @@ def get_truth_values(idSample):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
-    mycursor.execute("SELECT * FROM TruthValues WHERE IdTruth=%s", (idSample,))
+    mycursor.execute("SELECT * FROM TruthValues WHERE IdSample=%s", (idSample,))
 
     results = mycursor.fetchall()
 
@@ -265,7 +265,7 @@ def get_truth_prop_names(idSample):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
-    mycursor.execute("SELECT PropName FROM TruthValues WHERE IdTruth=%s", (idSample,))
+    mycursor.execute("SELECT PropName FROM TruthValues WHERE IdSample=%s", (idSample,))
 
     results = mycursor.fetchall()
 
@@ -279,7 +279,7 @@ def delete_truth_value(idSample):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
     
-    mycursor.execute("DELETE FROM TruthValues WHERE idTruth=%s", (idSample,))
+    mycursor.execute("DELETE FROM TruthValues WHERE IdSample=%s", (idSample,))
 
     mydb.commit()
 
@@ -483,7 +483,7 @@ def insert_pred_list(idPred, name, idMVE):
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
-    sql = "INSERT INTO PredList (IdPrediction, Name, IdProjectMVE) VALUES (%s, %s, %s)"
+    sql = "INSERT INTO PredList (TablePred, Name, IdProjectMVE) VALUES (%s, %s, %s)"
     val = (idPred, name, idMVE)
     mycursor.execute(sql, val)
 
@@ -554,7 +554,7 @@ def get_predList_ids(idMVE):
     mydb = mysql.connector.connect(**params)
 
     mycursor = mydb.cursor()
-    mycursor.execute("SELECT IdPrediction FROM PredList WHERE IdProjectMVE=%s", (idMVE,))
+    mycursor.execute("SELECT TablePred FROM PredList WHERE IdProjectMVE=%s", (idMVE,))
     results = mycursor.fetchall()
 
     mycursor.close()

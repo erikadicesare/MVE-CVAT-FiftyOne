@@ -73,7 +73,7 @@ def read_file(file, idMVE):
 # creo tre oggetti: uno con i nomi delle proprieta, uno con i valori numerici delle proprieta e
 # uno con i valori stringa delle proprieta 
 # per ogni proprieta/valore numerico/valore stringa chiamo la funzione insert_truth_values dello
-# script dbquery (che inserisce nel db una riga per ogni proprieta/valori con il corrispondente idTruth)
+# script dbquery (che inserisce nel db una riga per ogni proprieta/valori con il corrispondente idSample)
 
 def create_row_truth_values(idMVE, data, i, col, columns):
 
@@ -88,14 +88,14 @@ def create_row_truth_values(idMVE, data, i, col, columns):
         if data[col][i] == sample['name']:
             updated = i
             dbquery.delete_truth_value(sample['id'])
-            idTruth = sample['id']
+            idSample = sample['id']
             break
 
         else:
             updated = None
 
     if updated is None:
-        idTruth = dbquery.insert_truth(idMVE, data[col][i]) 
+        idSample = dbquery.insert_truth(idMVE, data[col][i]) 
             
     propsName = []
     valuesReal = []
@@ -112,7 +112,7 @@ def create_row_truth_values(idMVE, data, i, col, columns):
                 valuesString.append(str(data[column][i]))
     if (len(propsName) == len(valuesReal) and len(valuesReal) == len(valuesString)):
         for propName, valueReal, valueString in zip(propsName, valuesReal, valuesString):
-            dbquery.insert_truth_values(idTruth, propName, valueReal, valueString)
+            dbquery.insert_truth_values(idSample, propName, valueReal, valueString)
 
     return updated
 
@@ -126,7 +126,7 @@ def download_truth(idMVE):
     truth = dbquery.get_truth_mve(idMVE)
 
     # per ogni riga restituita vado a prendere i nomi delle proprieta presenti nella 
-    # tabella TruthValues (che fanno riferimento allo stesso idSample/idTruth).
+    # tabella TruthValues (che fanno riferimento allo stesso idSample/idSample).
     # creo una lista con tutti i nomi delle proprieta esistenti in quel progetto MVE
     columns = ['Name']
     for tr in truth:
@@ -137,7 +137,7 @@ def download_truth(idMVE):
     
     # per ogni riga restituita dalla query sulla tabella Truth, creo una lista row 
     # inizializzata a None per ogni colonna presente nella lista columns. 
-    # poi per ogni riga presa dalla tabella TruthValues con idTruth=idSample corrente
+    # poi per ogni riga presa dalla tabella TruthValues con idSample=idSample corrente
     # vado a prendere la posizione della colonna nella lista columns per poi andare a 
     # cabiare il valore None nella lista row in quella posizione. controllo anche che 
     # il valore in posizine 2 sia diverso da None: in caso affermativo cambio con quel

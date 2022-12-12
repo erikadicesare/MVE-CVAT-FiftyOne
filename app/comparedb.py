@@ -387,7 +387,7 @@ def compare_pred_truth(id, pred):
         if col[0] == "IdSample":
             i = index
 
-    # per ogni riga della prediction vado a prendere le righe della tabella TruthValues che hanno il campo IdTruth uguale all'idSample
+    # per ogni riga della prediction vado a prendere le righe della tabella TruthValues che hanno il campo IdSample uguale all'idSample
     for MVSpred in MVSpreds:
         rows = dbquery.get_truth_values(MVSpred[i])
         # per ogni riga restituita da TruthValues vado a prendere i campi con le info sulla proprieta e aggiungo la proprieta al dataset

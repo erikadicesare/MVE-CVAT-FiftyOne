@@ -28,7 +28,7 @@ def create_ProjectsMVE():
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
 
-    sql = "CREATE TABLE ProjectsMVE (IdProjectMVE BIGINT(20) NOT NULL AUTO_INCREMENT, NomeProgetto VARCHAR(100), Descrizione MEDIUMTEXT, ImmagineDescrittiva varchar(100), PRIMARY KEY (IdProjectMVE));" 
+    sql = "CREATE TABLE ProjectsMVE (IdProjectMVE BIGINT(20) NOT NULL AUTO_INCREMENT, Name VARCHAR(100), Description MEDIUMTEXT, Image varchar(100), PRIMARY KEY (IdProjectMVE));" 
     mycursor.execute(sql)
 
     mycursor.close()
@@ -79,9 +79,9 @@ def create_TruthValues():
             PropName VARCHAR(100),
             ValueReal DOUBLE,
             ValueString VARCHAR(100),
-            IdTruth BIGINT(20) NOT NULL,
+            IdSample BIGINT(20) NOT NULL,
             PRIMARY KEY (Id), 
-            FOREIGN KEY (IdTruth) REFERENCES Truth(IdSample) ON DELETE CASCADE ON UPDATE CASCADE);
+            FOREIGN KEY (IdSample) REFERENCES Truth(IdSample) ON DELETE CASCADE ON UPDATE CASCADE);
         """
         
     mycursor.execute(sql)
@@ -96,7 +96,7 @@ def create_PredList():
     sql = """
             CREATE TABLE PredList 
             (Id BIGINT(20) NOT NULL AUTO_INCREMENT,
-            IdPrediction VARCHAR(100) NOT NULL,
+            TablePred VARCHAR(100) NOT NULL,
             Name VARCHAR(100) NOT NULL,
             IdProjectMVE BIGINT(20) NOT NULL,
             PRIMARY KEY (Id), 
