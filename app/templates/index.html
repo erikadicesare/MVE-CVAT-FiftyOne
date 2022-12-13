@@ -10,6 +10,7 @@
 
     <br/>
     <a href="{{ url_for('new_projectMVE') }}"><input type="button" value="Nuovo progetto MVE" class="btn btn-dark float-end" style="margin-right: 20px;"></input></a>
+    <a onclick="(()=>window.open('{{url_cvat}}'+'/tasks','_blank'))()" target="_blank"><input type="button" value="Apri dashboard CVAT" class="btn btn-secondary float-end" style="margin-right: 20px;"></input></a>
     <br/><br/>
     <div class="container h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
@@ -146,6 +147,15 @@
             });
 
         });
+
+        function func(id){	
+          window.location.href = "http://192.168.1.92:8080/projects/" + id;
+        }
+
+        function openCvat(){	  
+          link = "{{url_cvat}}" + "/tasks";
+          return link
+        }
 
         
        /* $('[data-toggle="collapse"]').click(function () {

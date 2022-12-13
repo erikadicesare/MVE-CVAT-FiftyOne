@@ -35,7 +35,7 @@ def check_serverCVAT_connection():
 
 def generate_key_login():
 
-    login = requests.post('{}/auth/login'.format(url_cvat), json= credentials)
+    login = requests.post('{}/api/auth/login'.format(url_cvat), json= credentials)
     jsonObj = json.loads(login.text)
     keyLogin = jsonObj['key']
 
@@ -75,7 +75,7 @@ def create_empty_task(id, name_task, i, keyLogin):
         "image_quality": 100,
     }
 
-    createEmptyTask = requests.post('{}/tasks'.format(url_cvat), data=dataTask, headers={"Authorization": f'Token {keyLogin}'})
+    createEmptyTask = requests.post('{}/api/tasks'.format(url_cvat), data=dataTask, headers={"Authorization": f'Token {keyLogin}'})
     jsonObj = json.loads(createEmptyTask.text)
     taskId = jsonObj['id']
 
@@ -106,7 +106,7 @@ def upload_images(uuid, fs, keyLogin, taskId):
     directory = 'temp{}'.format(uuid)
 
     images = {f'client_files[{i}]': open(f, 'rb') for i, f in enumerate(fs)}
-    uploadImgs = requests.post('{}/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
+    uploadImgs = requests.post('{}/api/tasks/{}/data'.format(url_cvat,taskId), data={'image_quality':100}, files=images, headers={"Authorization": f'Token {keyLogin}'})
     print(uploadImgs.text)
     save_image_cover(fs[0], taskId)
     for f in fs:
@@ -129,7 +129,7 @@ def create_project(name_project):
         "name": name_project
     }
     
-    createProject = requests.post('{}/projects'.format(url_cvat), data=dataProject, headers={"Authorization": f'Token {keyLogin}'})
+    createProject = requests.post('{}/api/projects'.format(url_cvat), data=dataProject, headers={"Authorization": f'Token {keyLogin}'})
     jsonObj = json.loads(createProject.text)
     projectId = jsonObj['id']
     return projectId
@@ -142,12 +142,12 @@ def get_project(id_prj_MVE, id_prj_CVAT):
     keyLogin = generate_key_login()
 
     # prendo il progetto CVAT
-    prj = requests.get('{}/projects/{}'.format(url_cvat, id_prj_CVAT), headers={"Authorization": f'Token {keyLogin}'})
+    prj = requests.get('{}/api/projects/{}'.format(url_cvat, id_prj_CVAT), headers={"Authorization": f'Token {keyLogin}'})
     jsonObj = json.loads(prj.text)
     name = jsonObj['name']
 
     # prendo i task del progetto CVAT
-    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id_prj_CVAT),params={"page_size" : max_num_of_task}, headers={"Authorization": f'Token {keyLogin}'})
+    tasks = requests.get('{}/api/projects/{}/tasks'.format(url_cvat, id_prj_CVAT),params={"page_size" : max_num_of_task}, headers={"Authorization": f'Token {keyLogin}'})
     jsonTasks = json.loads(tasks.text)
     
     # 'results' contiene i task
@@ -186,14 +186,14 @@ def delete_project(id):
 
     keyLogin = generate_key_login()
 
-    prj = requests.delete('{}/projects/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
+    prj = requests.delete('{}/api/projects/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
 
 # prendo i task di un progetto cvat specifico
 def get_tasks(id):
 
     keyLogin = generate_key_login()
 
-    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), params={"page_size" : max_num_of_task},headers={"Authorization": f'Token {keyLogin}'})
+    tasks = requests.get('{}/api/projects/{}/tasks'.format(url_cvat, id), params={"page_size" : max_num_of_task},headers={"Authorization": f'Token {keyLogin}'})
     jsonTasks = json.loads(tasks.text)
     task = []
     for jsonTask in jsonTasks['results']:
@@ -221,7 +221,7 @@ def get_tasks(id):
 def get_tasks_ids(id):
     keyLogin = generate_key_login()
 
-    tasks = requests.get('{}/projects/{}/tasks'.format(url_cvat, id), params={"page_size" : max_num_of_task}, headers={"Authorization": f'Token {keyLogin}'})
+    tasks = requests.get('{}/api/projects/{}/tasks'.format(url_cvat, id), params={"page_size" : max_num_of_task}, headers={"Authorization": f'Token {keyLogin}'})
     jsonTasks = json.loads(tasks.text)
     ids = []
     for jsonTask in jsonTasks['results']:
@@ -233,7 +233,7 @@ def get_tasks_ids(id):
 def delete_task(id):
     keyLogin = generate_key_login()
     
-    prj = requests.delete('{}/tasks/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
+    prj = requests.delete('{}/api/tasks/{}'.format(url_cvat, id), headers={"Authorization": f'Token {keyLogin}'})
     
     # Se esiste elimino l'immagine salvata in "static/data/projectCVAT" durante la creazione del task 
     files = os.listdir('./app/static/data/projectCVAT')
@@ -246,7 +246,7 @@ def delete_task(id):
 def get_projects_id():
     keyLogin = generate_key_login()
 
-    prj = requests.get('{}/projects'.format(url_cvat), headers={"Authorization": f'Token {keyLogin}'})
+    prj = requests.get('{}/api/projects'.format(url_cvat), headers={"Authorization": f'Token {keyLogin}'})
     jsonObj = json.loads(prj.text)
     
     ids = []
@@ -261,7 +261,7 @@ def get_task_dataset(id, folderPath):
     keyLogin = generate_key_login()
 
     while True:
-        task = requests.get('{}/tasks/{}/dataset'.format(url_cvat, id), params={"action" : "download", "format":"CVAT for images 1.1", "location":"local"}, headers={"Authorization": f'Token {keyLogin}'})
+        task = requests.get('{}/api/tasks/{}/dataset'.format(url_cvat, id), params={"action" : "download", "format":"CVAT for images 1.1", "location":"local"}, headers={"Authorization": f'Token {keyLogin}'})
         if task.status_code == 200:
             break
     

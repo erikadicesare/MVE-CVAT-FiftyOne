@@ -70,6 +70,7 @@
                 <div class="row justify-content-center">
                   <div class="col-md-10">
                     <a class="btn btn-primary" href="{{ url_for('upload', id=id) }}" role="button">Carica immagini</a>
+                    <a class="btn btn-secondary" onclick="(()=>window.open('{{url_cvat}}'+'/projects/'+'{{id}}','_blank'))()" role="button">Vedi su CVAT</a>
                   </div>
                 </div>
                 <div class="row justify-content-center">
@@ -94,6 +95,7 @@
                                 <th scope="col">Immagini</th>
                                 <th scope="col">Data</th>
                                 <th scope="col">Ora</th>
+                                <th scope="col" style="text-align:center">Cvat</th>
                                 <th scope="col"></th>
                               </tr>
                             </thead>
@@ -105,6 +107,7 @@
                                   <td>{{task['size']}}</td>
                                   <td>{{task['date']}}</td>
                                   <td>{{task['time']}}</td>
+                                  <td style="text-align: center;"><a onclick="(()=>window.open('{{url_cvat}}'+'/tasks/'+'{{task.id}}','_blank'))()"  role="button"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
                                   <td style="text-align: center;"><a href="{{ url_for('delete_task', id=task['id'], prj_id=id) }}" onclick="return confirm('Sei sicuro di voler eliminare questo task?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  style="margin-bottom: 2px;"width="15" height="15"></a></td>
                                 </tr>
                               {%endfor%}

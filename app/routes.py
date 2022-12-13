@@ -8,6 +8,8 @@ from threading import Thread
 
 load_dotenv()
 
+url_cvat = os.getenv('URL_CVAT')
+
 ## PRIMA DI OGNI RICHIESTA FACCIO QUESTO CONTROLLO ##
 #####################################################################################################
 
@@ -43,7 +45,7 @@ def index():
     projectsCVAT =  dbquery.get_projectMVExProjectCVAT() 
     predictions = dbquery.get_predList(id)
 
-    return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, predictions=predictions)
+    return render_template('index.html', projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, predictions=predictions, url_cvat=url_cvat)
 
 ## GESTIONE PROGETTI MVE ##
 #####################################################################################################
@@ -133,7 +135,7 @@ def project(id):
     # l'api di cvat ritorna solo 10 task (in questo caso gli ultimi)
     tasks = CVATapi.get_tasks(id)
 
-    return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, tasks=tasks, info="")
+    return render_template('project.html', id=id, projectsMVE=projectsMVE, projectsCVAT=projectsCVAT, tasks=tasks, info="", url_cvat=url_cvat)
 
 
 # CREAZIONE di un nuovo progetto CVAT, dato un progetto MVE
@@ -254,6 +256,8 @@ def upload(id):
 def get_regex_file():
     if request.method == "POST":
         data = request.get_json()
+        print(data['uuid'])
+        print(data['data'])
     
     session['regex'+data['uuid']] = data['data']
 
