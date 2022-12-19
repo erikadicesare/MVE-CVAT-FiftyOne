@@ -1,5 +1,5 @@
 import pandas as pd
-import ntpath, os, shutil
+import os, shutil
 from flask import make_response, redirect, render_template, request, url_for
 from app import dbquery
 import re
@@ -18,14 +18,14 @@ def read_file(file, idMVE):
     if not isExist:
         os.makedirs(pathFolder)
 
-    headfp, tailfp = ntpath.split(file.filename)
+    headfp, tailfp = os.path.split(file.filename)
     
     pathFile = 'tempPred{}/'.format(uuid) + tailfp
     file.save(pathFile)
     
 
     # Leggo il file csv/xls
-    file_name, file_extension = ntpath.splitext(tailfp)
+    file_name, file_extension = os.path.splitext(tailfp)
 
     if (file_extension == ".csv"):
         data = pd.read_csv(filepath_or_buffer=pathFile)

@@ -1,6 +1,6 @@
 import mysql.connector
 from app import CVATapi
-import ntpath, os
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,7 +21,7 @@ def new_projectMVE(name_prj, desc_prj, img_prj):
     mydb = mysql.connector.connect(**params)
 
     # salvo l'immagine inserita dall'utente nella cartella /static/data/project-icon/ 
-    headfp, tailfp = ntpath.split(img_prj.filename)
+    headfp, tailfp = os.path.split(img_prj.filename)
     url_img_prj = './app/static/data/project-icon/' + tailfp
     img_prj.save(url_img_prj)
     relative_path = "data/project-icon/" + tailfp
@@ -49,7 +49,7 @@ def edit_projectMVE(id_prj, name_prj, desc_prj, img_prj):
         projectsMVE = mycursor.fetchone()
         relative_path = projectsMVE[0]
     else:
-        headfp, tailfp = ntpath.split(img_prj.filename)
+        headfp, tailfp = os.path.split(img_prj.filename)
         url_img_prj = './app/static/data/project-icon/' + tailfp
         img_prj.save(url_img_prj)
         relative_path = "data/project-icon/" + tailfp

@@ -1,6 +1,5 @@
 import os
 import fiftyone as fo
-import ntpath
 from app import dbquery
 from dotenv import load_dotenv
 
@@ -134,7 +133,7 @@ def get_numeric_data(dataset, pred, filepathfield):
         for sample in pb(dataset):
             i = 0
             sampleFilePath = sample.filepath
-            headfp, tailfp = ntpath.split(sampleFilePath)
+            headfp, tailfp = os.path.split(sampleFilePath)
 
             for x in predictions: 
                 if (x[0] in tailfp):
@@ -161,7 +160,7 @@ def add_sample_field(dataset, name_field, type_field, value_field, idMVS):
     with fo.ProgressBar() as pb:
         for sample in pb(dataset):
             sampleFilePath = sample.filepath
-            headfp, tailfp = ntpath.split(sampleFilePath)
+            headfp, tailfp = os.path.split(sampleFilePath)
             if (idMVS in tailfp):
                 field = name_field+"_Truth"
                 sample[field] = value_field

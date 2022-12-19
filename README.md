@@ -33,3 +33,5 @@ MAX_SIZE_LOAD_FILE=1000000000
 USER_DB=root #change it with the user if different from root
 NAME_DB=MVE Database
 ``` 
+
+N.B.3 if you are using windows, you have to change `os.path` with `ntpath` (after import the library)

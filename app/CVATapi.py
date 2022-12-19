@@ -2,7 +2,6 @@ from zipfile import ZipFile
 import requests
 import os, json
 from pathlib import Path
-import ntpath
 from PIL import Image  
 from app import dbquery
 from dotenv import load_dotenv
@@ -54,7 +53,7 @@ def get_files(files, uuid):
 
     totalSize = 0
     for file in files:
-        headfp, tailfp = ntpath.split(file.filename)
+        headfp, tailfp = os.path.split(file.filename)
         
         pathFile = 'temp{}/'.format(uuid) + tailfp
         file.save(pathFile)
@@ -115,7 +114,7 @@ def upload_images(uuid, fs, keyLogin, taskId):
 def save_image_cover(fs, taskId):
     # Salvo il primo file dentro static/data/projectCVAT per avere una immagine significativa per progetto (immagine presa dall'ultimo task inserito)
     picture = Image.open(fs)
-    file_name, file_extension = ntpath.splitext(fs)
+    file_name, file_extension = os.path.splitext(fs)
     pathFirstFile = './app/static/data/projectCVAT/{}{}'.format(taskId, file_extension)
     picture = picture.save(pathFirstFile)
 
@@ -163,7 +162,7 @@ def get_project(id_prj_MVE, id_prj_CVAT):
                 
         files = os.listdir('./app/static/data/projectCVAT')
         for file in files:
-            file_name, file_extension = ntpath.splitext(file)
+            file_name, file_extension = os.path.splitext(file)
             if (file_name==str(max(tasks_id))):
                 img = "data/projectCVAT/{}{}".format(file_name, file_extension)
     else:
@@ -238,7 +237,7 @@ def delete_task(id):
     # Se esiste elimino l'immagine salvata in "static/data/projectCVAT" durante la creazione del task 
     files = os.listdir('./app/static/data/projectCVAT')
     for file in files:
-        file_name, file_extension = ntpath.splitext(file)
+        file_name, file_extension = os.path.splitext(file)
         if (file_name==id):
             os.remove("app/static/data/projectCVAT/{}{}".format(file_name, file_extension))
 

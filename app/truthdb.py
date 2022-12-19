@@ -1,5 +1,5 @@
 import pandas as pd
-import ntpath, os, shutil
+import os, shutil
 from flask import request
 from app import dbquery
 
@@ -17,14 +17,14 @@ def read_file(file, idMVE):
     if not isExist:
         os.makedirs(pathFolder)
 
-    headfp, tailfp = ntpath.split(file.filename)
+    headfp, tailfp = os.path.split(file.filename)
     
     pathFile = 'tempTruth{}/'.format(uuid) + tailfp
     file.save(pathFile)
     
     # Use pandas to read a excel file by prodiving the path of file
     # The output of read_excel() function here is stored as a DataFrame
-    file_name, file_extension = ntpath.splitext(tailfp)
+    file_name, file_extension = os.path.splitext(tailfp)
 
     if (file_extension == ".csv"):
         data = pd.read_csv(filepath_or_buffer=pathFile)
