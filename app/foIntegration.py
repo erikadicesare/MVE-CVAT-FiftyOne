@@ -104,7 +104,9 @@ def create_fo_dataset(id, path, pred, predOrTruth, hasAnnotations):
         get_numeric_data(dataset, predOrTruth, 'idMVS')
 
     # lancio l'app fiftyone 
-    session = fo.launch_app(dataset)
+    #session = fo.launch_app(dataset)
+
+    return dataset
 
 def get_numeric_data(dataset, pred, filepathfield):
 

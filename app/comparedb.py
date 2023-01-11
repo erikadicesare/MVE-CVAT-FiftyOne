@@ -29,7 +29,9 @@ def view_prediction(id, pred):
     path = "datasets/{}".format(pred)
     revPath = "datasets/{}".format(pred)
    
-    get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, "/")
+    dataset = get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, "/")
+    
+    return dataset 
 
 def compare_predictions(id, pred1, pred2):
     
@@ -54,7 +56,9 @@ def compare_predictions(id, pred1, pred2):
     path = "datasets/{}x{}".format(pred1,pred2)
     revPath = "datasets/{}x{}".format(pred2,pred1)
     
-    get_data(path, revPath, tasks, idsCVAT, idsMVS, pred1, pred2)
+    dataset = get_data(path, revPath, tasks, idsCVAT, idsMVS, pred1, pred2)
+
+    return dataset 
 
 def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
 
@@ -191,8 +195,9 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
             
             f = open(path+"/dataset/info.json", "r")
             hasAnnotations = json.load(f)
+            f.close()
 
-            foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
+            return foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
         else:
             # se la cartella esiste vuol dire che ho gia i dati per eseguire il confronto
             # open and read the file after the appending:
@@ -202,20 +207,23 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
             if not isExist:
                 f = open(revPath+"/dataset/info.json", "r")
                 hasAnnotations = json.load(f)
+                f.close()
 
-                foIntegration.create_fo_dataset(str(epoch), revPath+"/dataset/", pred, predOrTruth, hasAnnotations)
+                return foIntegration.create_fo_dataset(str(epoch), revPath+"/dataset/", pred, predOrTruth, hasAnnotations)
 
             elif not isExistReverse:
                 f = open(path+"/dataset/info.json", "r")
                 hasAnnotations = json.load(f)
+                f.close()
 
-                foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
+                return foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
             
             if predOrTruth == "/":
                 f = open(revPath+"/dataset/info.json", "r")
                 hasAnnotations = json.load(f)
+                f.close()
 
-                foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
+                return foIntegration.create_fo_dataset(str(epoch), path+"/dataset/", pred, predOrTruth, hasAnnotations)
         
 
 def compare_pred_truth(id, pred):
@@ -370,7 +378,8 @@ def compare_pred_truth(id, pred):
     # open and read the file after the appending:
     f = open("datasets/{}xTruth/dataset/info.json".format(pred), "r")
     hasAnnotations = json.load(f)
-
+    f.close()
+    
     # random legato al tempo: nome del dataset su fiftyone
     epoch = time.time()
     
@@ -397,7 +406,8 @@ def compare_pred_truth(id, pred):
             else:
                 foIntegration.add_sample_field(dataset, row[1], "varchar", row[3], MVSpred[0])
             
-    foIntegration.launch_app(dataset)
+    #foIntegration.launch_app(dataset)
+    return dataset 
 
 # funzione usata per avere una lista di confronti fatti in passato (per uno specifico progetto mve)
 def get_comparisons(idMVE):

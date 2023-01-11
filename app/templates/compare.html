@@ -96,6 +96,26 @@
                     </div>
                     <br/>
                     <div id="loading" style="display:none; align-items:center; justify-content:center;"><img src="{{url_for('static',filename = 'data/icons/loading.gif')}}" alt="" width="100" height="100"/></div>
+                  
+                    {%if info != None%}
+                      <div class="alert alert-warning d-flex align-items-center" role="alert" style="margin-left: 40px; margin-right: 40px">
+                        <div>
+                          {{info}}
+                        </div>
+                      </div>
+                    {%endif%}
+
+                    {%if dname != None%}
+                      <div class="alert alert-info d-flex align-items-center" role="alert" style="margin-left: 40px; margin-right: 40px">
+                        <div>
+                          <a href="http://192.168.3.25:5151/datasets/{{dname}}" target="_blank" class="link-primary">Clicca qui per aprire su FiftyOne</a>
+                          
+                        </div>
+                      </div>
+                    {%endif%}
+                  
+                  
+                  
                   </div>
                 </div>
 
@@ -131,13 +151,13 @@
                                 <td>{{comp['compare']}}</td>
                                 {%endif%}
                                 {% if comp['dir_type'] == "Predizione vs Predizione" %}
-                                <td style="text-align: center;"><a href="{{ url_for('compare_existing', id=id, pred1=comp['compare'][0], pred2=comp['compare'][1]) }}"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
+                                <td style="text-align: center;"><a href="{{ url_for('compare_existing', id=id, pred1=comp['compare'][0], pred2=comp['compare'][1]) }}" onclick="loading();"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
                                 {%endif%}
                                 {% if comp['dir_type'] == "Predizione" %}
-                                <td style="text-align: center;"><a href="{{ url_for('compare_existing', id=id, pred1=comp['compare'], pred2='/') }}"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
+                                <td style="text-align: center;"><a href="{{ url_for('compare_existing', id=id, pred1=comp['compare'], pred2='/') }}" onclick="loading();"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
                                 {%endif%}
                                 {% if comp['dir_type'] == "Predizione vs Verità" %}
-                                <td style="text-align: center;"><a href="{{ url_for('compare_existing', id=id, pred1=comp['compare'][0], pred2='Truth') }}"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
+                                <td style="text-align: center;"><a href="{{ url_for('compare_existing', id=id, pred1=comp['compare'][0], pred2='Truth') }}" onclick="loading();"><img src="{{url_for('static',filename = 'data/icons/open.png')}}"  style="margin-bottom: 0px;"width="23" height="23"></a></td>
                                 {%endif%}
                                
                                 <td style="text-align: center;"><a href="{{ url_for('delete_compare', id=id, dir_name=comp['dir_name']) }}" onclick="return confirm('Sei sicuro di voler eliminare questo confronto?')"><img src="{{url_for('static',filename = 'data/icons/delete-icon.png')}}"  style="margin-bottom: 2px;"width="15" height="15"></a></td>
@@ -168,6 +188,7 @@
         filler.style.display = "none";
       }
     }
-
+    console.log("{{dname}}")
+    console.log("{{info}}")
 </script>
 {% endblock %}

@@ -379,14 +379,19 @@ def download_pred(id):
 ## CONFRONTO PREDIZIONI/VERITA  ##
 #####################################################################################################
 
+state_compare = False
+
 # pagina principale
 @app.route("/compare/<id>")
 def compare(id):
     comparisons = comparedb.get_comparisons(id)
     predictions = dbquery.get_predList_by_id(id)
     truth = dbquery.get_truth_mve(id)
-
-    return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons, truth=truth)
+    dname = session.get('dname', None)
+    session.pop('dname', None)
+    info = session.get('info', None)
+    session.pop('info', None)
+    return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons, truth=truth, dname=dname, info=info)
 
 # Visualizza predizione
 @app.route("/view_prediction/<id>",  methods=['POST', 'GET'])
@@ -394,8 +399,15 @@ def view_prediction(id):
     if request.method == "POST":
         pred = request.form['select-prediction']
         
-        comparedb.view_prediction(id, pred)
-
+        global state_compare
+        if state_compare == False:
+            state_compare = True
+            database = comparedb.view_prediction(id, pred)
+            session['dname'] = database.name
+            state_compare = False
+        else:
+            session['info'] = "Server occupato. riprova tra qualche secondo."
+            
     return redirect(url_for('compare', id=id))
 
 # Confronto predizioni 
@@ -404,8 +416,14 @@ def compare_predictions(id):
     if request.method == "POST":
         pred1 = request.form['select-first-prediction']
         pred2 = request.form['select-second-prediction']
-        
-        comparedb.compare_predictions(id, pred1, pred2)
+        global state_compare
+        if state_compare == False:
+            state_compare = True
+            database = comparedb.compare_predictions(id, pred1, pred2)
+            session['dname'] = database.name
+            state_compare = False
+        else:
+            session['info'] = "Server occupato. riprova tra qualche secondo."
 
     return redirect(url_for('compare', id=id))
 
@@ -414,8 +432,14 @@ def compare_predictions(id):
 def compare_pred_truth(id):
     if request.method == "POST":
         pred = request.form['select-prediction']
-        
-        comparedb.compare_pred_truth(id, pred)
+        global state_compare
+        if state_compare == False:
+            state_compare = True
+            database = comparedb.compare_pred_truth(id, pred)
+            session['dname'] = database.name
+            state_compare = False
+        else:
+            session['info'] = "Server occupato. riprova tra qualche secondo."
 
     return redirect(url_for('compare', id=id))
 
@@ -431,12 +455,19 @@ def delete_compare(id):
 def compare_existing(id):
     pred1 = request.args.get('pred1')
     tab = request.args.get('pred2')
-    if (tab == "/"):
-        comparedb.view_prediction(id, pred1)
-    elif (tab == "Truth"):
-        comparedb.compare_pred_truth(id, pred1)
+    global state_compare
+    if state_compare == False:
+        state_compare = True
+        if (tab == "/"):
+            database = comparedb.view_prediction(id, pred1)
+        elif (tab == "Truth"):
+            database = comparedb.compare_pred_truth(id, pred1)
+        else:
+            database = comparedb.compare_predictions(id, pred1, tab)
+        state_compare = False
+        session['dname'] = database.name
     else:
-        comparedb.compare_predictions(id, pred1, tab)
+        session['info'] = "Server occupato. riprova tra qualche secondo."
 
     return redirect(url_for('compare', id=id))
 
