@@ -125,15 +125,16 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
                 
                 # prendo la riga della prediction con l'id corrente (nb prendo solo i valori delle colonne di tipo "text", 
                 # cioe quelle che hanno dei tag al loro interno come valore)
-                row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
+                if text_column != []:
+                    row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
 
                 # per ogni valore della riga faccio un controllo ulteriore, cioe guardo se effettivamente soddisfano la regex 
                 # per i tag, poi li scrivo nel file xml
-                for r in row[0]:
-                    xml_string = str(r).replace('\u00A0',' ')
-                    if re.match(r"(<.[^(><)]+>)", xml_string): 
-                        hasAnnotations["pred1"] = 'True' 
-                        fxml.write(xml_string)
+                    for r in row[0]:
+                        xml_string = str(r).replace('\u00A0',' ')
+                        if re.match(r"(<.[^(><)]+>)", xml_string): 
+                            hasAnnotations["pred1"] = 'True' 
+                            fxml.write(xml_string)
 
                 fxml.write('</image>')
 
@@ -171,13 +172,14 @@ def get_data(path, revPath, tasks, idsCVAT, idsMVS, pred, predOrTruth):
 
                     # prendo la riga della prediction con l'id corrente (nb prendo solo i valori delle colonne di tipo "text", 
                     # cioe quelle che hanno dei tag al loro interno come valore)
-                    row = dbquery.get_prediction_by_id(predOrTruth, idMVS, text_column_pred2)
+                    if text_column_pred2 != []:
+                        row = dbquery.get_prediction_by_id(predOrTruth, idMVS, text_column_pred2)
 
-                    for r in row[0]:
-                        xml_string = str(r).replace('\u00A0',' ')
-                        if re.match(r"(<.[^(><)]+>)", xml_string): 
-                            hasAnnotations["predOrTruth"] = 'True' 
-                            fxml2.write(xml_string)
+                        for r in row[0]:
+                            xml_string = str(r).replace('\u00A0',' ')
+                            if re.match(r"(<.[^(><)]+>)", xml_string): 
+                                hasAnnotations["predOrTruth"] = 'True' 
+                                fxml2.write(xml_string)
 
                     fxml2.write('</image>')
 
@@ -348,13 +350,14 @@ def compare_pred_truth(id, pred):
             
             # prendo la riga della prediction con l'id corrente (nb prendo solo i valori delle colonne di tipo "text", 
             # cioe quelle che hanno dei tag al loro interno come valore)
-            row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
+            if text_column != []:
+                row = dbquery.get_prediction_by_id(pred, idMVS, text_column)
 
-            for r in row[0]:
-                xml_string = str(r).replace('\u00A0',' ')
-                if re.match(r"(<.[^(><)]+>)", xml_string): 
-                    hasAnnotations["pred1"]='True'
-                    fxml.write(xml_string)
+                for r in row[0]:
+                    xml_string = str(r).replace('\u00A0',' ')
+                    if re.match(r"(<.[^(><)]+>)", xml_string): 
+                        hasAnnotations["pred1"]='True'
+                        fxml.write(xml_string)
 
             fxml.write('</image>')
 

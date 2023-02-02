@@ -28,9 +28,9 @@ def read_file(file, idMVE):
     file_name, file_extension = os.path.splitext(tailfp)
 
     if (file_extension == ".csv"):
-        data = pd.read_csv(filepath_or_buffer=pathFile)
+        data = pd.read_csv(filepath_or_buffer=pathFile, converters={'ObjKey':str})
     else:
-        data=pd.read_excel(io=pathFile)
+        data=pd.read_excel(io=pathFile,converters={'ObjKey':str})
     
     # Se la colonna con il sampleId non esiste, restituisco un errore
     stringSampleId = 'sampleid'
@@ -116,7 +116,7 @@ def read_file(file, idMVE):
         # controllo che il sampleId presente nella prediction sia esistente tra i sampleId Truth
         for index, row in data.iterrows():
             currentRow = []
-            for column in columns:                    
+            for column in columns:              
                 if (pd.isnull(row[column]) == False):
                     currentRow.append(row[column])
                 else:

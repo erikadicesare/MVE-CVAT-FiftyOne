@@ -749,7 +749,10 @@ def get_prediction_by_id(table_name, idMVS, columns):
    
     mydb = mysql.connector.connect(**params)
     mycursor = mydb.cursor()
-
+    print('Columns:')
+    print(columns)
+    print('col_string:')
+    print(col_str)
     sql = "SELECT {} FROM {} WHERE IdMVS=%s;".format(col_str, table_name)
     value = (idMVS,)
     mycursor.execute(sql, value)

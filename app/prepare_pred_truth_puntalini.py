@@ -36,5 +36,5 @@ for index, row in data.iterrows():
     print(rows)
 
 df = pd.DataFrame(data=rows, columns=columns)
-namefile = "/home/musausr/Downloads/puntalini.csv"
-df.to_csv(namefile, index=False, header=True)
+namefile = "/home/musausr/Downloads/puntalini.xlsx"
+df.to_excel(namefile, index=False, header=True)
