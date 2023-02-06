@@ -391,7 +391,10 @@ def compare(id):
     session.pop('dname', None)
     info = session.get('info', None)
     session.pop('info', None)
-    return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons, truth=truth, dname=dname, info=info)
+    status = session.get('status', None)
+    session.pop('status', None)
+
+    return render_template('compare.html', id=id, predictions=predictions, comparisons=comparisons, truth=truth, dname=dname, info=info, status=status)
 
 # Visualizza predizione
 @app.route("/view_prediction/<id>",  methods=['POST', 'GET'])
@@ -407,7 +410,8 @@ def view_prediction(id):
             state_compare = False
         else:
             session['info'] = "Server occupato. riprova tra qualche secondo."
-            
+        session['status']="pred"    
+
     return redirect(url_for('compare', id=id))
 
 # Confronto predizioni 
@@ -424,6 +428,7 @@ def compare_predictions(id):
             state_compare = False
         else:
             session['info'] = "Server occupato. riprova tra qualche secondo."
+        session['status']="pred-vs-pred" 
 
     return redirect(url_for('compare', id=id))
 
@@ -440,6 +445,7 @@ def compare_pred_truth(id):
             state_compare = False
         else:
             session['info'] = "Server occupato. riprova tra qualche secondo."
+        session['status']="pred-vs-truth" 
 
     return redirect(url_for('compare', id=id))
 
