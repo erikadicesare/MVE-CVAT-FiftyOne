@@ -127,9 +127,9 @@ def create_MVSxCVAT():
     mydb.close()
 
 
-#create_ProjectsMVE()
-#create_ProjectMVExProjectCVAT()
-#create_Truth()
-#create_TruthValues()
-#create_PredList()
+create_ProjectsMVE()
+create_ProjectMVExProjectCVAT()
+create_Truth()
+create_TruthValues()
+create_PredList()
 create_MVSxCVAT()
