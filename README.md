@@ -2,6 +2,7 @@
 
 run cvat
 ```
+cd cvat
 export CVAT_HOST=<host_ipaddress>
 docker-compose up -d
 ```
@@ -14,6 +15,7 @@ python main.py
 
 run  flask (optional `--port=<num_port>`)
 ```
+//inside the FlaskApp directory
 $ flask run --host=0.0.0.0
 ```
 
